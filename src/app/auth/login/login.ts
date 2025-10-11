@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -13,24 +12,29 @@ export class Login {
 
   email = '';
   contrasena = '';
-  errorMessage = '';
+  errorMessage: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
 
   login() {
-    this.authService.login({ email: this.email, contrasena: this.contrasena }).subscribe({
+    const credentials = {
+      email: this.email,
+      contrasena: this.contrasena
+    };
+
+    this.authService.login(credentials).subscribe({
       next: (res) => {
-        if (res.exito) {
-          this.authService.guardarToken(res.datos.token);
-          console.log("inicio de secion exitoso ")
+    
+        if (res.data) {
+          this.authService.guardarToken(res.data);
           this.router.navigate(['/home']);
+          console.log(res.data);
         } else {
-          this.errorMessage = res.mensaje;
+          this.errorMessage = res.message || 'Credenciales incorrectas.';
         }
       },
       error: (err) => {
-        console.error(err);
-        this.errorMessage = 'Error al iniciar sesión. Verifica tus credenciales.';
+        console.error('Error en login:', err);
       }
     });
   }
