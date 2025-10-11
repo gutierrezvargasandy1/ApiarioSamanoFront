@@ -1,0 +1,78 @@
+<div class="container">
+  <div class="header">
+    <h2>Gestión de Usuarios</h2>
+    <div class="actions">
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">person_add</span> Agregar Usuario
+      </button>
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar por nombre o apellido..."
+          [(ngModel)]="terminoBusqueda"
+          name="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Apellido Paterno</th>
+        <th>Apellido Materno</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let usuario of filtrarUsuarios()">
+        <td>{{ usuario.nombre }}</td>
+        <td>{{ usuario.correo }}</td>
+        <td>{{ usuario.apellidoPat }}</td>
+        <td>{{ usuario.apellidoMat }}</td>
+        <td>{{ usuario.rol }}</td>
+        <td class="actions">
+          <button class="btn edit" (click)="editarUsuario(usuario)">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="btn delete" (click)="eliminarUsuario(usuario)">
+            <span class="material-icons">delete</span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Formulario modal -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Usuario' : 'Agregar Usuario' }}</h3>
+      <form (ngSubmit)="guardarUsuario()">
+        <label>Nombre:</label>
+        <input type="text" [(ngModel)]="usuarioSeleccionado.nombre" name="nombre" required />
+        <label>Correo:</label>
+        <input type="email" [(ngModel)]="usuarioSeleccionado.correo" name="correo" required />
+        <label>Apellido Paterno:</label>
+        <input type="text" [(ngModel)]="usuarioSeleccionado.apellidoPat" name="apellidoPat" required />
+        <label>Apellido Materno:</label>
+        <input type="text" [(ngModel)]="usuarioSeleccionado.apellidoMat" name="apellidoMat" required />
+        <label>Rol:</label>
+        <input type="text" [(ngModel)]="usuarioSeleccionado.rol" name="rol" required />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

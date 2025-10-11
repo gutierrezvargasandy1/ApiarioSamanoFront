@@ -1,0 +1,72 @@
+
+<div class="herramientas-container">
+  <div class="header">
+    <h2>Gestión de Herramientas</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar herramienta..."
+          [(ngModel)]="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">add_circle</span> Nueva Herramienta
+      </button>
+    </div>
+  </div>
+
+  <!-- Catálogo de herramientas -->
+  <div class="catalogo">
+    <div class="card" *ngFor="let herramienta of filtrarHerramientas()">
+      <img [src]="herramienta.imagen" alt="{{ herramienta.nombre }}" />
+      <h3>{{ herramienta.nombre }}</h3>
+      <p><strong>Estado:</strong> {{ herramienta.estado }}</p>
+      <p><strong>Cantidad:</strong> {{ herramienta.cantidad }}</p>
+
+      <div class="card-actions">
+        <button class="btn edit" (click)="editarHerramienta(herramienta)">
+          <span class="material-icons">edit</span>
+        </button>
+        <button class="btn delete" (click)="eliminarHerramienta(herramienta)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para agregar o editar -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Herramienta' : 'Agregar Herramienta' }}</h3>
+
+      <form (ngSubmit)="guardarHerramienta()">
+        <label>Nombre:</label>
+        <input type="text" [(ngModel)]="herramientaSeleccionada.nombre" name="nombre" required />
+
+        <label>Estado:</label>
+        <select [(ngModel)]="herramientaSeleccionada.estado" name="estado" required>
+          <option value="Disponible">Disponible</option>
+          <option value="En uso">En uso</option>
+          <option value="En reparación">En reparación</option>
+        </select>
+
+        <label>Cantidad:</label>
+        <input type="number" [(ngModel)]="herramientaSeleccionada.cantidad" name="cantidad" required />
+
+        <label>URL de Imagen:</label>
+        <input type="text" [(ngModel)]="herramientaSeleccionada.imagen" name="imagen" placeholder="https://..." />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

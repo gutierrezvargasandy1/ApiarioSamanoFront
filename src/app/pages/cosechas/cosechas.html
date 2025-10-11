@@ -1,0 +1,76 @@
+<div class="cosechas-container">
+  <div class="header">
+    <h2>Gestión de Cosechas</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar por calidad o fecha..."
+          [(ngModel)]="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">add_circle</span> Agregar Cosecha
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista de cosechas -->
+  <div class="lista-cosechas">
+    <div class="cosecha-card" *ngFor="let cosecha of filtrarCosechas()">
+      <div class="info">
+        <h3>Cosecha #{{ cosecha.id }}</h3>
+        <p><strong>Fecha:</strong> {{ cosecha.fecha | date:'shortDate' }}</p>
+        <p><strong>Calidad:</strong> {{ cosecha.calidad }}</p>
+        <p><strong>Cantidad:</strong> {{ cosecha.cantidad }} kg</p>
+        <p><strong>Apiario:</strong> {{ cosecha.apiario }}</p>
+      </div>
+      <div class="acciones">
+        <button class="btn edit" (click)="editarCosecha(cosecha)">
+          <span class="material-icons">edit</span>
+        </button>
+        <button class="btn delete" (click)="eliminarCosecha(cosecha)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para formulario -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Cosecha' : 'Agregar Cosecha' }}</h3>
+
+      <form (ngSubmit)="guardarCosecha()">
+        <label>ID:</label>
+        <input type="text" [(ngModel)]="cosechaSeleccionada.id" name="id" required />
+
+        <label>Fecha de Cosecha:</label>
+        <input type="date" [(ngModel)]="cosechaSeleccionada.fecha" name="fecha" required />
+
+        <label>Calidad:</label>
+        <select [(ngModel)]="cosechaSeleccionada.calidad" name="calidad" required>
+          <option value="Sabor">Sabor</option>
+          <option value="Color">Color</option>
+          <option value="Densidad">Densidad</option>
+        </select>
+
+        <label>Cantidad (kg):</label>
+        <input type="number" [(ngModel)]="cosechaSeleccionada.cantidad" name="cantidad" required />
+
+        <label>ID Apiario:</label>
+        <input type="text" [(ngModel)]="cosechaSeleccionada.apiario" name="apiario" required />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

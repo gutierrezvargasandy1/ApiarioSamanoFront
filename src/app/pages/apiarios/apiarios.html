@@ -1,0 +1,66 @@
+<div class="apiarios-container">
+  <div class="header">
+    <h2>Lista de Apiarios</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar por ubicación..."
+          [(ngModel)]="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">add_circle</span> Agregar Apiario
+      </button>
+    </div>
+  </div>
+
+  <div class="lista-apiarios">
+    <div
+      class="apiario-card"
+      *ngFor="let apiario of filtrarApiarios()"
+    >
+      <div class="info">
+        <h3>Apiario #{{ apiario.numeroApiario }}</h3>
+        <p><strong>Ubicación:</strong> {{ apiario.ubicacion }}</p>
+        <p><strong>Salud:</strong> {{ apiario.salud }}</p>
+        <p><strong>Medición Actual:</strong> {{ apiario.medicionActual }}</p>
+      </div>
+      <div class="acciones">
+        <button class="btn edit" (click)="editarApiario(apiario)">
+          <span class="material-icons">edit</span>
+        </button>
+        <button class="btn delete" (click)="eliminarApiario(apiario)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Formulario -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Apiario' : 'Agregar Apiario' }}</h3>
+      <form (ngSubmit)="guardarApiario()">
+        <label>Número de Apiario:</label>
+        <input type="number" [(ngModel)]="apiarioSeleccionado.numeroApiario" name="numeroApiario" required />
+        <label>Ubicación:</label>
+        <input type="text" [(ngModel)]="apiarioSeleccionado.ubicacion" name="ubicacion" required />
+        <label>Salud:</label>
+        <input type="text" [(ngModel)]="apiarioSeleccionado.salud" name="salud" required />
+        <label>Medición Actual:</label>
+        <input type="text" [(ngModel)]="apiarioSeleccionado.medicionActual" name="medicionActual" />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

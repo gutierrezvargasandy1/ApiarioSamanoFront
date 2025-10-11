@@ -1,0 +1,73 @@
+<div class="proveedores-container">
+  <div class="header">
+    <h2>Gestión de Proveedores</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input type="text" placeholder="Buscar proveedor..." [(ngModel)]="terminoBusqueda" />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">person_add</span> Nuevo Proveedor
+      </button>
+    </div>
+  </div>
+
+  <table class="tabla">
+    <thead>
+      <tr>
+        <th>Fotografía</th>
+        <th>Nombre Empresa</th>
+        <th>Teléfono</th>
+        <th>Material que Provee</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let proveedor of filtrarProveedores()">
+        <td><img [src]="proveedor.foto" alt="Foto proveedor" /></td>
+        <td>{{ proveedor.nombre_empresa }}</td>
+        <td>{{ proveedor.telefono }}</td>
+        <td>{{ proveedor.material }}</td>
+        <td>
+          <button class="btn edit" (click)="editarProveedor(proveedor)">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="btn delete" (click)="eliminarProveedor(proveedor)">
+            <span class="material-icons">delete</span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Modal -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Proveedor' : 'Agregar Proveedor' }}</h3>
+
+      <form (ngSubmit)="guardarProveedor()">
+        <label>Nombre Empresa:</label>
+        <input type="text" [(ngModel)]="proveedorSeleccionado.nombre_empresa" name="nombre_empresa" required />
+
+        <label>Teléfono:</label>
+        <input type="text" [(ngModel)]="proveedorSeleccionado.telefono" name="telefono" required />
+
+        <label>Material que Provee:</label>
+        <input type="text" [(ngModel)]="proveedorSeleccionado.material" name="material" required />
+
+        <label>URL Fotografía:</label>
+        <input type="text" [(ngModel)]="proveedorSeleccionado.foto" name="foto" placeholder="https://..." />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

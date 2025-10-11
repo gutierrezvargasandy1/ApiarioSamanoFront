@@ -1,0 +1,67 @@
+<div class="lotes-container">
+  <div class="header">
+    <h2>Gestión de Lotes</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar por ID o estado..."
+          [(ngModel)]="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">add_circle</span> Agregar Lote
+      </button>
+    </div>
+  </div>
+
+  <div class="lista-lotes">
+    <div class="lote-card" *ngFor="let lote of filtrarLotes()">
+      <div class="info">
+        <h3>Lote #{{ lote.id }}</h3>
+        <p><strong>Fecha:</strong> {{ lote.fecha | date:'shortDate' }}</p>
+        <p><strong>Cosechas:</strong> {{ lote.cosechas }}</p>
+        <p><strong>Estado:</strong> {{ lote.estado }}</p>
+      </div>
+      <div class="acciones">
+        <button class="btn edit" (click)="editarLote(lote)">
+          <span class="material-icons">edit</span>
+        </button>
+        <button class="btn delete" (click)="eliminarLote(lote)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Formulario -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Lote' : 'Agregar Lote' }}</h3>
+      <form (ngSubmit)="guardarLote()">
+        <label>ID del Lote:</label>
+        <input type="text" [(ngModel)]="loteSeleccionado.id" name="id" required />
+        <label>Fecha de Creación:</label>
+        <input type="date" [(ngModel)]="loteSeleccionado.fecha" name="fecha" required />
+        <label>Cantidad de Cosechas:</label>
+        <input type="number" [(ngModel)]="loteSeleccionado.cosechas" name="cosechas" required />
+        <label>Estado:</label>
+        <select [(ngModel)]="loteSeleccionado.estado" name="estado" required>
+          <option value="Activo">Activo</option>
+          <option value="En proceso">En proceso</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

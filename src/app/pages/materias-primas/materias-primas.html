@@ -1,0 +1,72 @@
+<div class="materias-container">
+  <div class="header">
+    <h2>Catálogo de Materias Primas</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar materia prima..."
+          [(ngModel)]="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">add_circle</span> Nueva Materia Prima
+      </button>
+    </div>
+  </div>
+
+  <!-- Catálogo de materias -->
+  <div class="catalogo">
+    <div class="card" *ngFor="let materia of filtrarMaterias()">
+      <img [src]="materia.foto" alt="{{ materia.nombre }}" />
+      <h3>{{ materia.nombre }}</h3>
+      <p><strong>Cantidad:</strong> {{ materia.cantidad }}</p>
+      <p><strong>Almacén:</strong> {{ materia.almacen }}</p>
+      <p><strong>Proveedor:</strong> {{ materia.proveedor }}</p>
+
+      <div class="card-actions">
+        <button class="btn edit" (click)="editarMateria(materia)">
+          <span class="material-icons">edit</span>
+        </button>
+        <button class="btn delete" (click)="eliminarMateria(materia)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Materia Prima' : 'Agregar Materia Prima' }}</h3>
+
+      <form (ngSubmit)="guardarMateria()">
+        <label>Nombre:</label>
+        <input type="text" [(ngModel)]="materiaSeleccionada.nombre" name="nombre" required />
+
+        <label>Cantidad:</label>
+        <input type="number" [(ngModel)]="materiaSeleccionada.cantidad" name="cantidad" required />
+
+        <label>Almacén:</label>
+        <input type="text" [(ngModel)]="materiaSeleccionada.almacen" name="almacen" required />
+
+        <label>Proveedor:</label>
+        <input type="text" [(ngModel)]="materiaSeleccionada.proveedor" name="proveedor" required />
+
+        <label>URL de Foto:</label>
+        <input type="text" [(ngModel)]="materiaSeleccionada.foto" name="foto" placeholder="https://..." />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

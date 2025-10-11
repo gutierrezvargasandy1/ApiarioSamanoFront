@@ -1,0 +1,78 @@
+<div class="almacenes-container">
+  <div class="header">
+    <h2>Gestión de Almacenes</h2>
+    <div class="actions">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar por ubicación..."
+          [(ngModel)]="terminoBusqueda"
+        />
+        <span class="material-icons search-icon">search</span>
+      </div>
+      <button class="btn add" (click)="abrirFormulario()">
+        <span class="material-icons">add_circle</span> Agregar Almacén
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de almacenes -->
+  <table class="tabla-almacenes">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Ubicación</th>
+        <th>Espacios Ocupados</th>
+        <th>Capacidad</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let almacen of filtrarAlmacenes()">
+        <td>{{ almacen.id }}</td>
+        <td>{{ almacen.ubicacion }}</td>
+        <td>{{ almacen.espaciosOcupados }}</td>
+        <td>{{ almacen.capacidad }}</td>
+        <td class="acciones">
+          <button class="btn edit" (click)="editarAlmacen(almacen)">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="btn delete" (click)="eliminarAlmacen(almacen)">
+            <span class="material-icons">delete</span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Modal de formulario -->
+  <div class="modal" *ngIf="mostrarFormulario">
+    <div class="modal-content">
+      <h3>{{ editando ? 'Editar Almacén' : 'Agregar Almacén' }}</h3>
+
+      <form (ngSubmit)="guardarAlmacen()">
+        <label>ID:</label>
+        <input type="text" [(ngModel)]="almacenSeleccionado.id" name="id" required />
+
+        <label>Ubicación:</label>
+        <input type="text" [(ngModel)]="almacenSeleccionado.ubicacion" name="ubicacion" required />
+
+        <label>Espacios Ocupados:</label>
+        <input type="number" [(ngModel)]="almacenSeleccionado.espaciosOcupados" name="espaciosOcupados" required />
+
+        <label>Capacidad:</label>
+        <input type="number" [(ngModel)]="almacenSeleccionado.capacidad" name="capacidad" required />
+
+        <div class="modal-actions">
+          <button class="btn save" type="submit">
+            <span class="material-icons">check</span> Guardar
+          </button>
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+            <span class="material-icons">close</span> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,22 @@
+<header class="header">
+  <div class="logo">
+    <img src="logopagina.png" alt="Logo Empresa" />
+  </div>
+
+  <div class="profile" (click)="toggleProfile()">
+    {{ userName }}
+
+    @if (showProfile) {
+      <div class="profile-dropdown" (click)="$event.stopPropagation()">
+        <span class="close-btn" (click)="closeProfile()">✖</span>
+
+        <p><b>Nombre:</b> {{ userName }}</p>
+        <p><b>Email:</b> {{ userEmail }}</p>
+        <p><b>Tel:</b> {{ userPhone }}</p>
+        <button (click)="logout()">Cerrar Sesión</button>
+      </div>
+    }
+  </div>
+</header>
+
+

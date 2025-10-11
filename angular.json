@@ -66,12 +66,18 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "host": "192.168.1.207", 
+            "port": 4200
+          },
           "configurations": {
             "production": {
               "buildTarget": "ApiarioSamano:build:production"
             },
             "development": {
-              "buildTarget": "ApiarioSamano:build:development"
+              "buildTarget": "ApiarioSamano:build:development",
+              "host": "0.0.0.0",
+              "port": 4200
             }
           },
           "defaultConfiguration": "development"
@@ -96,5 +102,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "87357fb8-8ee9-4d3b-98f1-8d8709f4058c"
   }
 }
