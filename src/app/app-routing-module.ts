@@ -12,10 +12,11 @@ import { Lotes } from './pages/lotes/lotes';
 import { Apiarios } from './pages/apiarios/apiarios';
 import { Almacenes} from './pages/almacenes/almacenes';
 import { Usuarios } from './pages/usuarios/usuarios';
-import path from 'path';
+import { VerificacionOTP } from './auth/verificacion-otp/verificacion-otp';
+import { CambioDeContrasena } from './auth/cambio-de-contrasena/cambio-de-contrasena';
+import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal/cambio-de-contrasena-temporal';
 
 const routes: Routes = [
-  { path: '', component: Login },
   { path: 'forgot-password', component: ForgotPassword },
   { path: 'home', component: Home},
   { path: 'cosechas', component: Cosechas },
@@ -28,7 +29,11 @@ const routes: Routes = [
   {path: 'materias-primas', component: MateriasPrimas},
   {path: 'proveedores', component: Proveedores},
   {path: 'login', component: Login },
-  { path: '**', redirectTo: 'login' } 
+  {path: 'verificacion-otp', component: VerificacionOTP },
+  {path: 'cambiar-contrasena', component: CambioDeContrasena},
+  {path: 'cambiar-contrasena-temporal', component: CambioDeContrasenaTemporal},
+  
+  {path: '**', redirectTo: 'login' },
 ];
 
 @NgModule({

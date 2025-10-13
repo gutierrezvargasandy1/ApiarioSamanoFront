@@ -1,0 +1,49 @@
+<div class="change-password-container">
+  <h2>Bienvenido 👋 Parece que eres nuevo por aquí.</h2>
+  <h3>Por favor, cambia tu contraseña temporal.</h3>
+
+  <form (ngSubmit)="cambiarContrasenaTemporal()" #form="ngForm">
+    <!-- Nueva contraseña -->
+    <div class="form-group">
+      <label for="nuevaContrasena">Nueva Contraseña</label>
+      <input
+        type="password"
+        id="nuevaContrasena"
+        name="nuevaContrasena"
+        [(ngModel)]="nuevaContrasena"
+        required
+        minlength="6"
+        placeholder="Ingresa tu nueva contraseña"
+      />
+    </div>
+
+    <!-- Confirmar nueva contraseña -->
+    <div class="form-group">
+      <label for="confirmarContrasena">Confirmar Contraseña</label>
+      <input
+        type="password"
+        id="confirmarContrasena"
+        name="confirmarContrasena"
+        [(ngModel)]="confirmarContrasena"
+        required
+        minlength="6"
+        placeholder="Repite tu nueva contraseña"
+      />
+    </div>
+
+    <!-- Mensaje de error o éxito -->
+    <div *ngIf="mensaje" 
+         [ngClass]="{
+           'error-message': mensaje.startsWith('❌') || mensaje.startsWith('⚠️'),
+           'success-message': mensaje.startsWith('✅'),
+           'loading-message': mensaje.startsWith('⏳')
+         }">
+      {{ mensaje }}
+    </div>
+
+    <!-- Botón de acción -->
+    <button type="submit" [disabled]="form.invalid || cargando">
+      {{ cargando ? 'Procesando...' : 'Cambiar Contraseña' }}
+    </button>
+  </form>
+</div>

@@ -14,8 +14,16 @@ export class App {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
-        // Ocultar header/navbar/footer en la ruta de login
-        this.showLayout = event.url !== '/login';
+        // Rutas donde NO se debe mostrar la navbar, header y footer
+        const rutasSinLayout = [
+          '/login',
+          '/forgot-password',
+          '/verificacion-otp',
+          '/cambiar-contrasena'
+        ];
+
+        
+        this.showLayout = !rutasSinLayout.some(ruta => event.url.startsWith(ruta));
       });
   }
 }

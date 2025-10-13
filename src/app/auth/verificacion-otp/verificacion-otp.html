@@ -1,0 +1,30 @@
+<div class="otp-container">
+  <div class="otp-card">
+    <h2>Verificación de Código OTP</h2>
+    <p class="subtitle">
+      Ingresa el código de verificación enviado para recuperar tu contraseña.
+    </p>
+
+    <form (ngSubmit)="verificarOTP()" #otpForm="ngForm">
+      <label for="otp">Código de verificación</label>
+      <input
+        id="otp"
+        type="text"
+        maxlength="6"
+       
+        [(ngModel)]="codigoOTP"
+        name="codigoOTP"
+        required
+      />
+
+      <button type="submit" class="btn verify" [disabled]="!otpForm.valid">
+        <span class="material-icons">verified_user</span>
+        Verificar
+      </button>
+    </form>
+
+    <p class="info-text">
+      ¿No recibiste el código? <a (click)="reenviarOTP()">Reenviar</a>
+    </p>
+  </div>
+</div>

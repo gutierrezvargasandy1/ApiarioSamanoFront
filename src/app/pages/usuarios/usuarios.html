@@ -17,7 +17,10 @@
     </div>
   </div>
 
-  <table class="styled-table">
+  <!-- ✅ Mensaje de confirmación -->
+  <div class="alert" *ngIf="mensaje">{{ mensaje }}</div>
+
+  <table class="styled-table" *ngIf="filtrarUsuarios().length > 0; else sinUsuarios">
     <thead>
       <tr>
         <th>Nombre</th>
@@ -31,9 +34,9 @@
     <tbody>
       <tr *ngFor="let usuario of filtrarUsuarios()">
         <td>{{ usuario.nombre }}</td>
-        <td>{{ usuario.correo }}</td>
-        <td>{{ usuario.apellidoPat }}</td>
-        <td>{{ usuario.apellidoMat }}</td>
+        <td>{{ usuario.email }}</td>
+        <td>{{ usuario.apellidoPa }}</td>
+        <td>{{ usuario.apellidoMa }}</td>
         <td>{{ usuario.rol }}</td>
         <td class="actions">
           <button class="btn edit" (click)="editarUsuario(usuario)">
@@ -47,7 +50,11 @@
     </tbody>
   </table>
 
-  <!-- Formulario modal -->
+  <ng-template #sinUsuarios>
+    <p class="no-data">No hay usuarios registrados.</p>
+  </ng-template>
+
+  <!-- Modal -->
   <div class="modal" *ngIf="mostrarFormulario">
     <div class="modal-content">
       <h3>{{ editando ? 'Editar Usuario' : 'Agregar Usuario' }}</h3>
@@ -55,11 +62,11 @@
         <label>Nombre:</label>
         <input type="text" [(ngModel)]="usuarioSeleccionado.nombre" name="nombre" required />
         <label>Correo:</label>
-        <input type="email" [(ngModel)]="usuarioSeleccionado.correo" name="correo" required />
+        <input type="email" [(ngModel)]="usuarioSeleccionado.email" name="email" required />
         <label>Apellido Paterno:</label>
-        <input type="text" [(ngModel)]="usuarioSeleccionado.apellidoPat" name="apellidoPat" required />
+        <input type="text" [(ngModel)]="usuarioSeleccionado.apellidoPa" name="apellidoPa" required />
         <label>Apellido Materno:</label>
-        <input type="text" [(ngModel)]="usuarioSeleccionado.apellidoMat" name="apellidoMat" required />
+        <input type="text" [(ngModel)]="usuarioSeleccionado.apellidoMa" name="apellidoMa" required />
         <label>Rol:</label>
         <input type="text" [(ngModel)]="usuarioSeleccionado.rol" name="rol" required />
 
@@ -75,4 +82,3 @@
     </div>
   </div>
 </div>
-

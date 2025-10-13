@@ -20,6 +20,9 @@ import { Herramientas } from './pages/herramientas/herramientas';
 import { MateriasPrimas } from './pages/materias-primas/materias-primas';
 import { Proveedores } from './pages/proveedores/proveedores';
 import { Footer } from './core/footer/footer';
+import { VerificacionOTP } from './auth/verificacion-otp/verificacion-otp';
+import { CambioDeContrasena } from './auth/cambio-de-contrasena/cambio-de-contrasena';
+import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal/cambio-de-contrasena-temporal';
 
 @NgModule({
   declarations: [
@@ -36,7 +39,10 @@ import { Footer } from './core/footer/footer';
     Herramientas,
     MateriasPrimas,
     Proveedores,
-    Footer
+    Footer,
+    VerificacionOTP,
+    CambioDeContrasena,
+    CambioDeContrasenaTemporal
   // 
   ],
   imports: [

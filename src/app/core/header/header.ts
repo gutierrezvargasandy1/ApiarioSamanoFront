@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -12,6 +13,8 @@ export class Header {
   userEmail = 'demo@empresa.com';
   userPhone = '1234567890';
 
+  constructor(private authService: AuthService) {}
+
   toggleProfile() {
     this.showProfile = !this.showProfile;
   }
@@ -21,7 +24,6 @@ export class Header {
   }
 
   logout() {
-    // lógica para cerrar sesión
-    console.log('Cerrando sesión...');
+    this.authService.cerrarSesion;
   }
 }

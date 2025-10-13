@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -19,9 +19,8 @@ export class Navbar implements OnInit, OnDestroy {
   constructor(public router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.verificarRol(); // primera verificación
+    this.verificarRol(); 
 
-    // 🔥 vuelve a ejecutar cuando cambia la ruta
     this.routerSub = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -39,7 +38,6 @@ export class Navbar implements OnInit, OnDestroy {
 
   verificarRol(): void {
     const rol = this.authService.getRoleFromToken();
-    console.log('Rol actual:', rol);
     this.isOperator = rol === 'OPERADOR';
   }
 

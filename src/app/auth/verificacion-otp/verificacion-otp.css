@@ -1,0 +1,101 @@
+/* Fondo general */
+.otp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  color: #333;
+}
+
+/* Tarjeta central */
+.otp-card {
+  background: #ffffff;
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 380px;
+  border-top: 6px solid #a7c7e7; /* azul pastel tipo apiario */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.otp-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Título */
+.otp-card h2 {
+  margin-bottom: 8px;
+  color: #a7c7e7;
+  font-size: 1.6em;
+}
+
+.subtitle {
+  font-size: 0.95em;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+/* Input */
+.otp-card input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.1em;
+  text-align: center;
+  border: 2px solid #a7c7e7;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.otp-card input:focus {
+  border-color: #81c784; /* verde suave tipo éxito */
+  box-shadow: 0 0 6px rgba(129, 199, 132, 0.5);
+}
+
+/* Botón */
+.btn.verify {
+  background-color: #a7c7e7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-top: 20px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn.verify:hover {
+  background-color: #81c784;
+  transform: scale(1.03);
+}
+
+.btn.verify:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Texto inferior */
+.info-text {
+  margin-top: 20px;
+  font-size: 0.9em;
+  color: #777;
+}
+
+.info-text a {
+  color: #a7c7e7;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.info-text a:hover {
+  text-decoration: underline;
+}
