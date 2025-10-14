@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService, ResponseDTO } from '../../services/auth/auth.service';
 import { DataService } from '../../services/data/data';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-cambio-de-contrasena-temporal',
   standalone: false,
@@ -19,13 +19,14 @@ export class CambioDeContrasenaTemporal implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private dataService: DataService
+    private dataService: DataService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    // Recupera el email y la contraseña temporal desde otra página
     this.email = this.dataService.getEmail();
-    this.contrasenaTemporal = this.dataService.getContrasenaTemporal();
+    this.contrasenaTemporal = this.dataService.getContrasenaTemporal(); 
+    console.log(this.email,this.contrasenaTemporal)
   }
 
   cambiarContrasenaTemporal(): void {
@@ -46,8 +47,9 @@ export class CambioDeContrasenaTemporal implements OnInit {
     this.authService.cambiarContrasenaTemporal(this.email, this.contrasenaTemporal, this.nuevaContrasena)
       .subscribe({
         next: (response: ResponseDTO<string>) => {
+          this.router.navigate(['home']);
           this.cargando = false;
-          this.mensaje = (response.message || 'Contraseña cambiada correctamente.');
+          this.mensaje = response.message || 'Contraseña cambiada exitosamente. Por favor, inicia sesión con tu nueva contraseña.';
         },
         error: (error) => {
           this.cargando = false;

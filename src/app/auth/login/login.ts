@@ -18,8 +18,7 @@ export class Login {
 
   constructor(private authService: AuthService, private router: Router, private dataService: DataService) {}
   ngOnInit(): void {
-    this.dataService.setContrasenaTemporal(this.contrasena);
-    this.dataService.setEmail(this.email);
+   
   }
 
   login() {
@@ -45,7 +44,11 @@ export class Login {
         if (res.data) {
           this.authService.guardarToken(res.data);
           if( this.authService.getEstadoFromToken() === true){
+             this.dataService.setContrasenaTemporal(this.contrasena);
+             this.dataService.setEmail(this.email);
+             console.log("credenciales enviadas", this.contrasena,this.email)
             this.router.navigate(['cambiar-contrasena-temporal']);
+
           }else{
             this.router.navigate(['home']);
           }
