@@ -13,7 +13,12 @@ export class Proveedores implements OnInit {
   terminoBusqueda: string = '';
   mostrarFormulario: boolean = false;
   editando: boolean = false;
-  proveedorSeleccionado: ProveedorRequest = {} as ProveedorRequest;
+  proveedorSeleccionado: ProveedorRequest = {
+    nombreEmpresa: '',
+    numTelefono: '',
+    materialProvee: ''
+  };
+  archivoSeleccionado: File | null = null;
 
   constructor(private proveedoresService: ProveedoresService) {}
 
@@ -38,30 +43,53 @@ export class Proveedores implements OnInit {
 
   abrirFormulario(proveedor?: Proveedor) {
     this.mostrarFormulario = true;
+    this.archivoSeleccionado = null;
+    
     if (proveedor) {
       this.editando = true;
-      this.proveedorSeleccionado = { ...proveedor }; // clonamos
+      this.proveedorSeleccionado = { 
+        id: proveedor.id,
+        nombreEmpresa: proveedor.nombreEmpresa || '',
+        numTelefono: proveedor.numTelefono || '',
+        materialProvee: proveedor.materialProvee || '',
+        fotografia: proveedor.fotografia // Base64 para preview
+      };
     } else {
       this.editando = false;
-      this.proveedorSeleccionado = {} as ProveedorRequest;
+      this.proveedorSeleccionado = {
+        nombreEmpresa: '',
+        numTelefono: '',
+        materialProvee: ''
+      };
     }
   }
 
   cerrarFormulario() {
     this.mostrarFormulario = false;
-    this.proveedorSeleccionado = {} as ProveedorRequest;
+    this.proveedorSeleccionado = {
+      nombreEmpresa: '',
+      numTelefono: '',
+      materialProvee: ''
+    };
+    this.archivoSeleccionado = null;
     this.editando = false;
   }
 
   guardarProveedor() {
-    // Convertir Uint8Array a Base64 si hay imagen
-    if (this.proveedorSeleccionado.fotografia && !(typeof this.proveedorSeleccionado.fotografia === 'string')) {
-  const bytes = this.proveedorSeleccionado.fotografia as Uint8Array;
-  const binary = Array.from(bytes).map(byte => String.fromCharCode(byte)).join('');
-  this.proveedorSeleccionado.fotografia = btoa(binary);
-}
+    // Preparar el objeto para enviar
+    const proveedorParaEnviar: ProveedorRequest = {
+      nombreEmpresa: this.proveedorSeleccionado.nombreEmpresa,
+      numTelefono: this.proveedorSeleccionado.numTelefono,
+      materialProvee: this.proveedorSeleccionado.materialProvee
+    };
+
+    // Si hay un archivo seleccionado, agregarlo
+    if (this.archivoSeleccionado) {
+      proveedorParaEnviar.fotografia = this.archivoSeleccionado;
+    }
+
     if (this.editando && this.proveedorSeleccionado.id) {
-      this.proveedoresService.actualizarProveedor(this.proveedorSeleccionado.id, this.proveedorSeleccionado)
+      this.proveedoresService.actualizarProveedor(this.proveedorSeleccionado.id, proveedorParaEnviar)
         .subscribe({
           next: () => {
             this.cargarProveedores();
@@ -70,7 +98,7 @@ export class Proveedores implements OnInit {
           error: (err) => console.error('Error al actualizar proveedor', err)
         });
     } else {
-      this.proveedoresService.crearProveedor(this.proveedorSeleccionado)
+      this.proveedoresService.crearProveedor(proveedorParaEnviar)
         .subscribe({
           next: () => {
             this.cargarProveedores();
@@ -88,20 +116,40 @@ export class Proveedores implements OnInit {
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
+      this.archivoSeleccionado = file;
+      
+      // Crear preview
       const reader = new FileReader();
       reader.onload = () => {
-        const base64 = (reader.result as string).split(',')[1]; // extraemos Base64
-        this.proveedorSeleccionado.fotografia = base64; // directamente Base64 string
+        this.proveedorSeleccionado.fotografia = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
   }
 
+  eliminarFoto() {
+    this.archivoSeleccionado = null;
+    this.proveedorSeleccionado.fotografia = undefined;
+  }
+
   eliminarProveedor(proveedor: Proveedor) {
     if (!proveedor.id) return;
-    this.proveedoresService.eliminarProveedor(proveedor.id).subscribe({
-      next: () => this.cargarProveedores(),
-      error: (err) => console.error('Error al eliminar proveedor', err)
-    });
+    
+    if (confirm(`¿Estás seguro de eliminar a ${proveedor.nombreEmpresa}?`)) {
+      this.proveedoresService.eliminarProveedor(proveedor.id).subscribe({
+        next: () => this.cargarProveedores(),
+        error: (err) => console.error('Error al eliminar proveedor', err)
+      });
+    }
+  }
+
+  // Método para mostrar imagen en el template
+  getFotoUrl(fotografia: string | undefined): string {
+    if (fotografia && fotografia.startsWith('data:')) {
+      return fotografia;
+    } else if (fotografia) {
+      return 'data:image/jpeg;base64,' + fotografia;
+    }
+    return ''; // o una imagen por defecto
   }
 }
