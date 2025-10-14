@@ -1,61 +1,107 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ProveedoresService, Proveedor, ProveedorRequest } from '../../services/proveedoresService/proveedores-service';
 
 @Component({
   selector: 'app-proveedores',
-  standalone: false,
+  standalone: false,  
   templateUrl: './proveedores.html',
-  styleUrl: './proveedores.css'
+  styleUrls: ['./proveedores.css']
 })
+export class Proveedores implements OnInit {
 
-export class Proveedores {
-  proveedores = [
-    { foto: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png', nombre_empresa: 'Apícola del Valle', telefono: '555-123-4567', material: 'Cera de abeja' },
-    { foto: 'https://cdn-icons-png.flaticon.com/512/616/616408.png', nombre_empresa: 'Envapack', telefono: '555-987-6543', material: 'Envases de vidrio' },
-    { foto: 'https://cdn-icons-png.flaticon.com/512/1999/1999625.png', nombre_empresa: 'MetalMiel', telefono: '555-321-7789', material: 'Tapas metálicas' }
-  ];
-
+  proveedores: Proveedor[] = [];
   terminoBusqueda: string = '';
   mostrarFormulario: boolean = false;
   editando: boolean = false;
-  proveedorSeleccionado: any = {};
+  proveedorSeleccionado: ProveedorRequest = {} as ProveedorRequest;
 
-  filtrarProveedores() {
+  constructor(private proveedoresService: ProveedoresService) {}
+
+  ngOnInit() {
+    this.cargarProveedores();
+  }
+
+  cargarProveedores() {
+    this.proveedoresService.listarProveedores().subscribe({
+      next: (data) => this.proveedores = data,
+      error: (err) => console.error('Error al cargar proveedores', err)
+    });
+  }
+
+  filtrarProveedores(): Proveedor[] {
+    if (!Array.isArray(this.proveedores)) return [];
     return this.proveedores.filter(p =>
-      p.nombre_empresa.toLowerCase().includes(this.terminoBusqueda.toLowerCase()) ||
-      p.telefono.includes(this.terminoBusqueda)
+      p.nombreEmpresa?.toLowerCase().includes(this.terminoBusqueda.toLowerCase()) ||
+      p.numTelefono?.includes(this.terminoBusqueda)
     );
   }
 
-  abrirFormulario(proveedor?: any) {
+  abrirFormulario(proveedor?: Proveedor) {
     this.mostrarFormulario = true;
     if (proveedor) {
       this.editando = true;
-      this.proveedorSeleccionado = { ...proveedor };
+      this.proveedorSeleccionado = { ...proveedor }; // clonamos
     } else {
       this.editando = false;
-      this.proveedorSeleccionado = {};
+      this.proveedorSeleccionado = {} as ProveedorRequest;
     }
   }
 
   cerrarFormulario() {
     this.mostrarFormulario = false;
+    this.proveedorSeleccionado = {} as ProveedorRequest;
+    this.editando = false;
   }
 
   guardarProveedor() {
-    if (this.editando) {
-      const index = this.proveedores.findIndex(p => p.nombre_empresa === this.proveedorSeleccionado.nombre_empresa);
-      this.proveedores[index] = this.proveedorSeleccionado;
+    // Convertir Uint8Array a Base64 si hay imagen
+    if (this.proveedorSeleccionado.fotografia && !(typeof this.proveedorSeleccionado.fotografia === 'string')) {
+  const bytes = this.proveedorSeleccionado.fotografia as Uint8Array;
+  const binary = Array.from(bytes).map(byte => String.fromCharCode(byte)).join('');
+  this.proveedorSeleccionado.fotografia = btoa(binary);
+}
+    if (this.editando && this.proveedorSeleccionado.id) {
+      this.proveedoresService.actualizarProveedor(this.proveedorSeleccionado.id, this.proveedorSeleccionado)
+        .subscribe({
+          next: () => {
+            this.cargarProveedores();
+            this.cerrarFormulario();
+          },
+          error: (err) => console.error('Error al actualizar proveedor', err)
+        });
     } else {
-      this.proveedores.push({ ...this.proveedorSeleccionado });
+      this.proveedoresService.crearProveedor(this.proveedorSeleccionado)
+        .subscribe({
+          next: () => {
+            this.cargarProveedores();
+            this.cerrarFormulario();
+          },
+          error: (err) => console.error('Error al crear proveedor', err)
+        });
     }
-    this.cerrarFormulario();
   }
 
-  editarProveedor(proveedor: any) {
+  editarProveedor(proveedor: Proveedor) {
     this.abrirFormulario(proveedor);
   }
 
-  eliminarProveedor(proveedor: any) {
-    this.proveedores = this.proveedores.filter(p => p !== proveedor);
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(',')[1]; // extraemos Base64
+        this.proveedorSeleccionado.fotografia = base64; // directamente Base64 string
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  eliminarProveedor(proveedor: Proveedor) {
+    if (!proveedor.id) return;
+    this.proveedoresService.eliminarProveedor(proveedor.id).subscribe({
+      next: () => this.cargarProveedores(),
+      error: (err) => console.error('Error al eliminar proveedor', err)
+    });
   }
 }

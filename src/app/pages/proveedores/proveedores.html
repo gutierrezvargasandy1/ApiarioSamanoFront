@@ -24,10 +24,10 @@
     </thead>
     <tbody>
       <tr *ngFor="let proveedor of filtrarProveedores()">
-        <td><img [src]="proveedor.foto" alt="Foto proveedor" /></td>
-        <td>{{ proveedor.nombre_empresa }}</td>
-        <td>{{ proveedor.telefono }}</td>
-        <td>{{ proveedor.material }}</td>
+        <td><img *ngIf="proveedor.fotografia" [src]="'data:image/png;base64,' + proveedor.fotografia" alt="Foto proveedor" /></td>
+        <td>{{ proveedor.nombreEmpresa }}</td>
+        <td>{{ proveedor.numTelefono }}</td>
+        <td>{{ proveedor.materialProvee }}</td>
         <td>
           <button class="btn edit" (click)="editarProveedor(proveedor)">
             <span class="material-icons">edit</span>
@@ -47,16 +47,17 @@
 
       <form (ngSubmit)="guardarProveedor()">
         <label>Nombre Empresa:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.nombre_empresa" name="nombre_empresa" required />
+        <input type="text" [(ngModel)]="proveedorSeleccionado.nombreEmpresa" name="nombre_empresa" required />
 
         <label>Teléfono:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.telefono" name="telefono" required />
+        <input type="text" [(ngModel)]="proveedorSeleccionado.numTelefono" name="telefono" required />
 
         <label>Material que Provee:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.material" name="material" required />
+        <input type="text" [(ngModel)]="proveedorSeleccionado.materialProvee" name="material" required />
 
-        <label>URL Fotografía:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.foto" name="foto" placeholder="https://..." />
+        <label>Fotografía:</label>
+        <input type="file" (change)="onFileSelected($event)" />
+
 
         <div class="modal-actions">
           <button class="btn save" type="submit">
