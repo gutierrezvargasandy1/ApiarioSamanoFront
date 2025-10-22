@@ -5,41 +5,62 @@
       <div class="search-box">
         <input
           type="text"
-          placeholder="Buscar por ubicación..."
+          placeholder="Buscar por ubicación o número..."
           [(ngModel)]="terminoBusqueda"
         />
         <span class="material-icons search-icon">search</span>
       </div>
-      <button class="btn add" (click)="abrirFormulario()">
+      <button class="btn add" (click)="abrirFormulario()" [disabled]="cargando">
         <span class="material-icons">add_circle</span> Agregar Almacén
       </button>
     </div>
   </div>
 
+  <!-- Mensaje de error -->
+  <div class="error-message" *ngIf="error && !mostrarFormulario">
+    <span class="material-icons">error</span>
+    {{ error }}
+  </div>
+
+  <!-- Indicador de carga -->
+  <div class="loading" *ngIf="cargando && !mostrarFormulario">
+    <span class="material-icons spinning">refresh</span>
+    Cargando...
+  </div>
+
   <!-- Tabla de almacenes -->
-  <table class="tabla-almacenes">
+  <table class="tabla-almacenes" *ngIf="!cargando">
     <thead>
       <tr>
         <th>ID</th>
+        <th>Número de Seguimiento</th>
         <th>Ubicación</th>
         <th>Espacios Ocupados</th>
         <th>Capacidad</th>
+        <th>Disponible</th>
         <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let almacen of filtrarAlmacenes()">
         <td>{{ almacen.id }}</td>
+        <td>{{ almacen.numeroSeguimiento }}</td>
         <td>{{ almacen.ubicacion }}</td>
-        <td>{{ almacen.espaciosOcupados }}</td>
+        <td>{{ calcularEspaciosOcupados(almacen) }}</td>
         <td>{{ almacen.capacidad }}</td>
+        <td>{{ almacen.capacidad - calcularEspaciosOcupados(almacen) }}</td>
         <td class="acciones">
-          <button class="btn edit" (click)="editarAlmacen(almacen)">
+          <button class="btn edit" (click)="editarAlmacen(almacen)" [disabled]="cargando">
             <span class="material-icons">edit</span>
           </button>
-          <button class="btn delete" (click)="eliminarAlmacen(almacen)">
+          <button class="btn delete" (click)="eliminarAlmacen(almacen)" [disabled]="cargando">
             <span class="material-icons">delete</span>
           </button>
+        </td>
+      </tr>
+      <tr *ngIf="filtrarAlmacenes().length === 0">
+        <td colspan="7" style="text-align: center; padding: 20px;">
+          No se encontraron almacenes
         </td>
       </tr>
     </tbody>
@@ -50,24 +71,38 @@
     <div class="modal-content">
       <h3>{{ editando ? 'Editar Almacén' : 'Agregar Almacén' }}</h3>
 
+      <!-- Mensaje de error en modal -->
+      <div class="error-message" *ngIf="error">
+        <span class="material-icons">error</span>
+        {{ error }}
+      </div>
+
       <form (ngSubmit)="guardarAlmacen()">
-        <label>ID:</label>
-        <input type="text" [(ngModel)]="almacenSeleccionado.id" name="id" required />
-
         <label>Ubicación:</label>
-        <input type="text" [(ngModel)]="almacenSeleccionado.ubicacion" name="ubicacion" required />
-
-        <label>Espacios Ocupados:</label>
-        <input type="number" [(ngModel)]="almacenSeleccionado.espaciosOcupados" name="espaciosOcupados" required />
+        <input 
+          type="text" 
+          [(ngModel)]="almacenSeleccionado.ubicacion" 
+          name="ubicacion" 
+          placeholder="Ej: Centro, Norte, Sur..."
+          required 
+        />
 
         <label>Capacidad:</label>
-        <input type="number" [(ngModel)]="almacenSeleccionado.capacidad" name="capacidad" required />
+        <input 
+          type="number" 
+          [(ngModel)]="almacenSeleccionado.capacidad" 
+          name="capacidad"
+          min="1"
+          placeholder="Número de espacios disponibles"
+          required 
+        />
 
         <div class="modal-actions">
-          <button class="btn save" type="submit">
-            <span class="material-icons">check</span> Guardar
+          <button class="btn save" type="submit" [disabled]="cargando">
+            <span class="material-icons">{{ cargando ? 'hourglass_empty' : 'check' }}</span>
+            {{ cargando ? 'Guardando...' : 'Guardar' }}
           </button>
-          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
+          <button class="btn cancel" type="button" (click)="cerrarFormulario()" [disabled]="cargando">
             <span class="material-icons">close</span> Cancelar
           </button>
         </div>
@@ -75,4 +110,3 @@
     </div>
   </div>
 </div>
-
