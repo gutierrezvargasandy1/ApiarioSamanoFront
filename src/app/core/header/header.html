@@ -3,20 +3,16 @@
     <img src="logopagina.png" alt="Logo Empresa" />
   </div>
 
-  <div class="profile" (click)="toggleProfile()">
-    {{ userName }}
+  <div class="profile">
+    <button class="user-btn" (click)="toggleProfile()">
+      {{ userName }}
+    </button>
 
-    @if (showProfile) {
-      <div class="profile-dropdown" (click)="$event.stopPropagation()">
-        <span class="close-btn" (click)="closeProfile()">✖</span>
-
-        <p><b>Nombre:</b> {{ userName }}</p>
-        <p><b>Email:</b> {{ userEmail }}</p>
-        <p><b>Tel:</b> {{ userPhone }}</p>
-        <button (click)="logout()">Cerrar Sesión</button>
-      </div>
-    }
+    <form class="form" [class.open]="showProfile" (click)="$event.stopPropagation()">
+      <p class="heading">{{ userName }}</p>
+      <p class="input">{{ userName }}</p>
+      <p class="input">{{ userName }}</p>
+      <button class="btn">Submit</button>
+    </form>
   </div>
 </header>
-
-

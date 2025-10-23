@@ -1,15 +1,55 @@
 <nav class="navbar" *ngIf="shouldShowNavbar()">
-  <a (click)="goToHome()">Inicio</a>
-  <a (click)="goToCosechas()">Cosechas</a>
-  <a (click)="goToLotes()">Lotes</a>
-  <a (click)="goToApiarios()">Apiarios</a>
-  <a (click)="goToAlmacenes()">Almacenes</a>
-  <a (click)="goToHerramientas()">Herramienta</a>
-  <a (click)="goToMateriasPrimas()">Materias Primas</a>
-  <a (click)="goToProveedores()">Proveedores</a>
-
-  <!-- 👇 Se oculta automáticamente si el rol es OPERADOR -->
-  <a *ngIf="!isOperator" (click)="goToUsuarios()">Usuarios</a>
-
-  <a (click)="goToHistorialMedico()">Historial Médico</a>
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <span class="brand-icon"></span>
+      <span class="brand-text">ApiariosSamano</span>
+    </div>
+    
+    <div class="navbar-links">
+      <a class="nav-link" [class.active]="router.url === '/home'" (click)="goToHome()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Inicio</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/cosechas'" (click)="goToCosechas()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Cosechas</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/lotes'" (click)="goToLotes()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Lotes</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/apiarios'" (click)="goToApiarios()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Apiarios</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/almacenes'" (click)="goToAlmacenes()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Almacenes</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/herramientas'" (click)="goToHerramientas()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Herramientas</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/materias-primas'" (click)="goToMateriasPrimas()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Materias Primas</span>
+      </a>
+      
+      <a class="nav-link" [class.active]="router.url === '/proveedores'" (click)="goToProveedores()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Proveedores</span>
+      </a>
+      
+      <a class="nav-link" *ngIf="!isOperator" [class.active]="router.url === '/usuarios'" (click)="goToUsuarios()">
+        <span class="nav-icon"></span>
+        <span class="nav-text">Usuarios</span>
+      </a>
+    </div>
+  </div>
 </nav>

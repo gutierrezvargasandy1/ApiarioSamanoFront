@@ -12,6 +12,8 @@ export class Header {
   userName = 'Raul Samano';
   userEmail = 'demo@empresa.com';
   userPhone = '1234567890';
+  userRole: string = '';
+
 
   constructor(private authService: AuthService) {}
 
