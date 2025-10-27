@@ -1,49 +1,75 @@
 <div class="change-password-container">
-  <h2>Bienvenido 👋 Parece que eres nuevo por aquí.</h2>
-  <h3>Por favor, cambia tu contraseña temporal.</h3>
-
-  <form (ngSubmit)="cambiarContrasenaTemporal()" #form="ngForm">
-    <!-- Nueva contraseña -->
-    <div class="form-group">
-      <label for="nuevaContrasena">Nueva Contraseña</label>
-      <input
-        type="password"
-        id="nuevaContrasena"
-        name="nuevaContrasena"
-        [(ngModel)]="nuevaContrasena"
-        required
-        minlength="6"
-        placeholder="Ingresa tu nueva contraseña"
-      />
+  <div class="change-password-card">
+    
+    <!-- Decoración de llave y candado -->
+    <div class="key-lock-wrapper">
+      <div class="key-lock-animation">
+        <!-- Candado -->
+        <div class="lock-body">
+          <div class="lock-top"></div>
+          <div class="lock-bottom">
+            <div class="keyhole"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Confirmar nueva contraseña -->
-    <div class="form-group">
-      <label for="confirmarContrasena">Confirmar Contraseña</label>
-      <input
-        type="password"
-        id="confirmarContrasena"
-        name="confirmarContrasena"
-        [(ngModel)]="confirmarContrasena"
-        required
-        minlength="6"
-        placeholder="Repite tu nueva contraseña"
-      />
-    </div>
+    <!-- Contenido del formulario -->
+    <h2>Bienvenido</h2>
+    
+    <p class="subtitle">
+      Parece que eres nuevo por aquí. Por favor, cambia tu contraseña temporal.
+    </p>
 
-    <!-- Mensaje de error o éxito -->
-    <div *ngIf="mensaje" 
-         [ngClass]="{
-           'error-message': mensaje.startsWith('❌') || mensaje.startsWith('⚠️'),
-           'success-message': mensaje.startsWith('✅'),
-           'loading-message': mensaje.startsWith('⏳')
-         }">
-      {{ mensaje }}
-    </div>
+    <form (ngSubmit)="cambiarContrasenaTemporal()" #form="ngForm">
+      <!-- Nueva contraseña -->
+      <div class="input-group">
+        <label for="nuevaContrasena">Nueva Contraseña</label>
+        <input
+          type="password"
+          id="nuevaContrasena"
+          name="nuevaContrasena"
+          [(ngModel)]="nuevaContrasena"
+          required
+          minlength="6"
+          placeholder="Mínimo 6 caracteres"
+        />
+      </div>
 
-    <!-- Botón de acción -->
-    <button type="submit" [disabled]="form.invalid || cargando">
-      {{ cargando ? 'Procesando...' : 'Cambiar Contraseña' }}
-    </button>
-  </form>
+      <!-- Confirmar nueva contraseña -->
+      <div class="input-group">
+        <label for="confirmarContrasena">Confirmar Contraseña</label>
+        <input
+          type="password"
+          id="confirmarContrasena"
+          name="confirmarContrasena"
+          [(ngModel)]="confirmarContrasena"
+          required
+          minlength="6"
+          placeholder="Repite tu nueva contraseña"
+        />
+      </div>
+
+      <!-- Mensaje de error, éxito o carga -->
+      <div *ngIf="mensaje"
+           [ngClass]="{
+             'error-message': mensaje.startsWith('') || mensaje.startsWith('⚠️'),
+             'success-message': mensaje.startsWith(''),
+             'loading-message': mensaje.startsWith('')
+           }">
+        {{ mensaje }}
+      </div>
+
+      <!-- Botón de acción -->
+      <button type="submit" class="btn-primary" [disabled]="form.invalid || cargando">
+        <span class="icon-key" *ngIf="!cargando"></span>
+        <span class="spinner" *ngIf="cargando"></span>
+        {{ cargando ? 'Procesando...' : 'Cambiar Contraseña' }}
+      </button>
+    </form>
+
+    <p class="info-text">
+      Tu nueva contraseña debe tener al menos 6 caracteres
+    </p>
+  </div>
 </div>

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService, ResponseDTO } from '../../services/auth/auth.service';
 import { DataService } from '../../services/data/data';
 import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-cambio-de-contrasena-temporal',
   standalone: false,
@@ -26,7 +27,7 @@ export class CambioDeContrasenaTemporal implements OnInit {
   ngOnInit(): void {
     this.email = this.dataService.getEmail();
     this.contrasenaTemporal = this.dataService.getContrasenaTemporal(); 
-    console.log(this.email,this.contrasenaTemporal)
+    console.log('Email y contraseña temporal:', this.email, this.contrasenaTemporal);
   }
 
   cambiarContrasenaTemporal(): void {
@@ -47,18 +48,34 @@ export class CambioDeContrasenaTemporal implements OnInit {
     this.authService.cambiarContrasenaTemporal(this.email, this.contrasenaTemporal, this.nuevaContrasena)
       .subscribe({
         next: (response: ResponseDTO<string>) => {
-          this.router.navigate(['home']);
           this.cargando = false;
-          this.mensaje = response.message || 'Contraseña cambiada exitosamente. Por favor, inicia sesión con tu nueva contraseña.';
+          this.mensaje = response.message || '✅ Contraseña cambiada exitosamente. Por favor, inicia sesión con tu nueva contraseña.';
+          this.router.navigate(['home']);
         },
         error: (error) => {
           this.cargando = false;
-          console.error('Error:', error);
-          if (error.error?.message) {
-            this.mensaje =  error.error.message;
-          } else {
-            this.mensaje = 'Error al cambiar la contraseña temporal.';
+          console.error('Error completo:', error);
+
+          // Mensaje por defecto
+          let mensajeError = '❌ Error al cambiar la contraseña temporal.';
+
+          if (error.status === 404) {
+            // Usuario no encontrado
+            mensajeError = '❌ Usuario no encontrado.';
+          } else if (error.error) {
+            if (typeof error.error === 'string') {
+              // Backend devuelve HTML o string
+              mensajeError = '❌ Usuario o contraseña temporal incorrectos.';
+            } else if (error.error.message) {
+              // Backend devuelve objeto con mensaje
+              mensajeError = error.error.message;
+            } else {
+              // Respuesta compleja
+              mensajeError = JSON.stringify(error.error);
+            }
           }
+
+          this.mensaje = mensajeError;
         }
       });
   }

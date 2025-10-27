@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DataService } from '../../services/data/data';
+import { ToastService } from '../../services/toastService/toast-service';
+
 @Component({
   selector: 'app-login',
   standalone: false,
@@ -16,17 +18,31 @@ export class Login {
   errorMessage: string = '';
   isSubmitting: boolean = false;
 
-  constructor(private authService: AuthService, private router: Router, private dataService: DataService) {}
-  ngOnInit(): void {
-   
-  }
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private dataService: DataService,
+    private toastService: ToastService
+  ) {}
+
+  ngOnInit(): void {}
 
   login() {
-    this.errorMessage = ''; // Limpiamos errores previos
+    this.errorMessage = '';
 
-    // Validación de campos vacíos
+    // Validaciones
     if (!this.email.trim() || !this.contrasena.trim()) {
-      this.errorMessage = 'Por favor, ingresa correo y contraseña.';
+      this.toastService.warning('Atención', 'Por favor, ingresa correo y contraseña.');
+      return;
+    }
+
+    if (!this.validarEmail(this.email.trim())) {
+      this.toastService.warning('Atención', 'Ingresa un correo válido.');
+      return;
+    }
+
+    if (this.contrasena.length < 6) {
+      this.toastService.warning('Atención', 'La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
@@ -40,47 +56,60 @@ export class Login {
     this.authService.login(credentials).subscribe({
       next: (res) => {
         this.isSubmitting = false;
-        
+
         if (res.data) {
           this.authService.guardarToken(res.data);
-          if( this.authService.getEstadoFromToken() === true){
-             this.dataService.setContrasenaTemporal(this.contrasena);
-             this.dataService.setEmail(this.email);
-             console.log("credenciales enviadas", this.contrasena,this.email)
-            this.router.navigate(['cambiar-contrasena-temporal']);
 
-          }else{
+          if (this.authService.getEstadoFromToken() === true) {
+            this.dataService.setContrasenaTemporal(this.contrasena);
+            this.dataService.setEmail(this.email);
+            this.toastService.success('Éxito', 'Inicia sesión con tu contraseña temporal.');
+            this.router.navigate(['cambiar-contrasena-temporal']);
+          } else {
             this.router.navigate(['home']);
           }
         } else {
-          this.errorMessage = res.message || 'Credenciales incorrectas.';
+          this.toastService.error('Error', res.message || 'Credenciales incorrectas.');
         }
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting = false;
         console.error('Error en login:', err);
 
-        // Si el backend devuelve 401 (usuario no encontrado o contraseña incorrecta)
+        let mensaje = 'Ocurrió un error, intenta nuevamente.';
+
         if (err.status === 401) {
-          this.errorMessage = 'Credenciales incorrectas.';
-        } else {
-          this.errorMessage = 'Ocurrió un error, intenta nuevamente.';
+          mensaje = 'Credenciales incorrectas.';
+        } else if (err.error) {
+          if (typeof err.error === 'string') {
+            mensaje = 'Usuario o contraseña inválidos.';
+          } else if (err.error.message) {
+            mensaje = err.error.message;
+          } else {
+            mensaje = JSON.stringify(err.error);
+          }
         }
+
+        this.toastService.error('Error', mensaje);
       }
     });
   }
 
-  validarCampos() {
-  if (!this.email.trim() || !this.contrasena.trim()) {
-    this.errorMessage = 'Por favor, ingresa correo y contraseña.';
-  } else {
-    this.errorMessage = '';
+  validarEmail(email: string): boolean {
+    // Expresión regular simple para validar correo
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
   }
-}
 
-irARecuperacionContrasena(){
-  this.router.navigate(['forgot-password']);
-}
+  validarCampos() {
+    if (!this.email.trim() || !this.contrasena.trim()) {
+      this.errorMessage = 'Por favor, ingresa correo y contraseña.';
+    } else {
+      this.errorMessage = '';
+    }
+  }
 
-
+  irARecuperacionContrasena() {
+    this.router.navigate(['forgot-password']);
+  }
 }

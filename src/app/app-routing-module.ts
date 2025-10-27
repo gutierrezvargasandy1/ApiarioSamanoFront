@@ -7,7 +7,6 @@ import { Proveedores } from './pages/proveedores/proveedores';
 import { Login } from './auth/login/login';
 import { ForgotPassword } from './auth/forgot-password/forgot-password';
 import { Home } from './pages/home/home';
-import { Cosechas } from './pages/cosechas/cosechas';
 import { Lotes } from './pages/lotes/lotes';
 import { Apiarios } from './pages/apiarios/apiarios';
 import { Almacenes} from './pages/almacenes/almacenes';
@@ -15,11 +14,12 @@ import { Usuarios } from './pages/usuarios/usuarios';
 import { VerificacionOTP } from './auth/verificacion-otp/verificacion-otp';
 import { CambioDeContrasena } from './auth/cambio-de-contrasena/cambio-de-contrasena';
 import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal/cambio-de-contrasena-temporal';
+import { Produccion } from './pages/produccion/produccion/produccion';
 
 const routes: Routes = [
   { path: 'forgot-password', component: ForgotPassword },
   { path: 'home', component: Home},
-  { path: 'cosechas', component: Cosechas },
+  {path : 'produccion', component: Produccion},
   { path: 'lotes', component: Lotes },
   { path: 'apiarios', component: Apiarios },
   { path: 'almacenes', component: Almacenes },

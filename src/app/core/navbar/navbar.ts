@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
@@ -16,16 +17,23 @@ export class Navbar implements OnInit, OnDestroy {
   isOperator: boolean = false;
   private routerSub!: Subscription;
 
-  constructor(public router: Router, private authService: AuthService) {}
+  constructor(
+    public router: Router, 
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object // ✅ INYECTAR PLATFORM_ID
+  ) {}
 
   ngOnInit(): void {
-    this.verificarRol(); 
+    // ✅ SOLO EJECUTAR EN EL NAVEGADOR
+    if (isPlatformBrowser(this.platformId)) {
+      this.verificarRol(); 
 
-    this.routerSub = this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.verificarRol();
-      });
+      this.routerSub = this.router.events
+        .pipe(filter(event => event instanceof NavigationEnd))
+        .subscribe(() => {
+          this.verificarRol();
+        });
+    }
   }
 
   ngOnDestroy(): void {
@@ -37,13 +45,14 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   verificarRol(): void {
+    // ✅ YA NO NECESITA VERIFICACIÓN ADICIONAL PORQUE ngOnInit YA LO HIZO
     const rol = this.authService.getRoleFromToken();
     this.isOperator = rol === 'OPERADOR';
   }
 
   // === NAVEGACIÓN ===
   goToHome() { this.router.navigate(['/home']); }
-  goToCosechas() { this.router.navigate(['/cosechas']); }
+  goToProduccion() { this.router.navigate(['/produccion']); }
   goToLotes() { this.router.navigate(['/lotes']); }
   goToApiarios() { this.router.navigate(['/apiarios']); }
   goToAlmacenes() { this.router.navigate(['/almacenes']); }

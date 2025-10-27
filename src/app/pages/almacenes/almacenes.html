@@ -1,112 +1,174 @@
-<div class="almacenes-container">
-  <div class="header">
-    <h2>Gestión de Almacenes</h2>
-    <div class="actions">
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Buscar por ubicación o número..."
-          [(ngModel)]="terminoBusqueda"
-        />
-        <span class="material-icons search-icon">search</span>
-      </div>
-      <button class="btn add" (click)="abrirFormulario()" [disabled]="cargando">
-        <span class="material-icons">add_circle</span> Agregar Almacén
-      </button>
+<div class="container">
+        <!-- Panel Izquierdo - Lista de Almacenes -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h2><span></span> Almacenes</h2>
+                <button class="btn-nuevo-almacen" onclick="abrirModalAlmacen()">
+                    <span>➕</span> Nuevo
+                </button>
+            </div>
+            
+<div id="listaAlmacenes" class="almacenes-lista">
+    <!-- Estado de carga -->
+    <div *ngIf="cargando" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando almacenes...</p>
     </div>
-  </div>
 
-  <!-- Mensaje de error -->
-  <div class="error-message" *ngIf="error && !mostrarFormulario">
-    <span class="material-icons">error</span>
-    {{ error }}
-  </div>
+    <!-- Lista de almacenes -->
+    <div *ngIf="!cargando && almacenes.length > 0">
+        <div *ngFor="let almacen of almacenes" 
+             class="almacen-item"
+             [class.selected]="almacenSeleccionado?.id === almacen.id"
+             (click)="seleccionarAlmacen(almacen)">
+            
+            <!-- Header del almacén -->
+            <div class="almacen-header">
+                <div class="almacen-info">
+                    <h4 class="almacen-numero">Almacén #{{ almacen.numeroSeguimiento }}</h4>
+                    <span class="almacen-ubicacion">📍 {{ almacen.ubicacion }}</span>
+                </div>
+                <div class="almacen-estado">
+                    <span class="capacidad-badge">
+                        {{ calcularEspaciosOcupados(almacen) }}/{{ almacen.capacidad }}
+                    </span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" 
+                             [style.width.%]="calcularPorcentajeOcupacion(almacen)"
+                             [class]="'nivel-' + obtenerClasePorcentaje(calcularPorcentajeOcupacion(almacen))">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-  <!-- Indicador de carga -->
-  <div class="loading" *ngIf="cargando && !mostrarFormulario">
-    <span class="material-icons spinning">refresh</span>
-    Cargando...
-  </div>
+            <!-- Contenido del almacén -->
+            <div class="almacen-content">
+                <div class="almacen-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">📦</span>
+                        <span class="stat-value">{{ almacen.materiasPrimas?.length || 0 }}</span>
+                        <span class="stat-label">Materias Primas</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🛠️</span>
+                        <span class="stat-value">{{ almacen.herramientas?.length || 0 }}</span>
+                        <span class="stat-label">Herramientas</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">💊</span>
+                        <span class="stat-value">{{ almacen.medicamentos?.length || 0 }}</span>
+                        <span class="stat-label">Medicamentos</span>
+                    </div>
+                </div>
 
-  <!-- Tabla de almacenes -->
-  <table class="tabla-almacenes" *ngIf="!cargando">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Número de Seguimiento</th>
-        <th>Ubicación</th>
-        <th>Espacios Ocupados</th>
-        <th>Capacidad</th>
-        <th>Disponible</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let almacen of filtrarAlmacenes()">
-        <td>{{ almacen.id }}</td>
-        <td>{{ almacen.numeroSeguimiento }}</td>
-        <td>{{ almacen.ubicacion }}</td>
-        <td>{{ calcularEspaciosOcupados(almacen) }}</td>
-        <td>{{ almacen.capacidad }}</td>
-        <td>{{ almacen.capacidad - calcularEspaciosOcupados(almacen) }}</td>
-        <td class="acciones">
-          <button class="btn edit" (click)="editarAlmacen(almacen)" [disabled]="cargando">
-            <span class="material-icons">edit</span>
-          </button>
-          <button class="btn delete" (click)="eliminarAlmacen(almacen)" [disabled]="cargando">
-            <span class="material-icons">delete</span>
-          </button>
-        </td>
-      </tr>
-      <tr *ngIf="filtrarAlmacenes().length === 0">
-        <td colspan="7" style="text-align: center; padding: 20px;">
-          No se encontraron almacenes
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Modal de formulario -->
-  <div class="modal" *ngIf="mostrarFormulario">
-    <div class="modal-content">
-      <h3>{{ editando ? 'Editar Almacén' : 'Agregar Almacén' }}</h3>
-
-      <!-- Mensaje de error en modal -->
-      <div class="error-message" *ngIf="error">
-        <span class="material-icons">error</span>
-        {{ error }}
-      </div>
-
-      <form (ngSubmit)="guardarAlmacen()">
-        <label>Ubicación:</label>
-        <input 
-          type="text" 
-          [(ngModel)]="almacenSeleccionado.ubicacion" 
-          name="ubicacion" 
-          placeholder="Ej: Centro, Norte, Sur..."
-          required 
-        />
-
-        <label>Capacidad:</label>
-        <input 
-          type="number" 
-          [(ngModel)]="almacenSeleccionado.capacidad" 
-          name="capacidad"
-          min="1"
-          placeholder="Número de espacios disponibles"
-          required 
-        />
-
-        <div class="modal-actions">
-          <button class="btn save" type="submit" [disabled]="cargando">
-            <span class="material-icons">{{ cargando ? 'hourglass_empty' : 'check' }}</span>
-            {{ cargando ? 'Guardando...' : 'Guardar' }}
-          </button>
-          <button class="btn cancel" type="button" (click)="cerrarFormulario()" [disabled]="cargando">
-            <span class="material-icons">close</span> Cancelar
-          </button>
+                <!-- Botones de acción -->
+                <div class="almacen-actions">
+                    <button class="btn btn-small btn-edit" 
+                            (click)="abrirModalAlmacen(almacen); $event.stopPropagation()">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn btn-small btn-delete" 
+                            (click)="eliminarAlmacen(almacen, $event)">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            </div>
         </div>
-      </form>
     </div>
-  </div>
+
+    <!-- Estado vacío - FALTA ESTA PARTE -->
+    <div *ngIf="!cargando && almacenes.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No hay almacenes registrados</h3>
+        <p>Comienza creando tu primer almacén para organizar tus recursos</p>
+        <button class="btn btn-primary" (click)="abrirModalAlmacen()">
+            ➕ Crear Primer Almacén
+        </button>
+    </div>
 </div>
+    <!-- Estado vacío -->
+    <div *ngIf="!cargando && almacenes.length === 0" class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No hay almacenes registrados</h3>
+        <p>Comienza creando tu primer almacén para organizar tus recursos</p>
+
+    </div>
+</div>
+        
+
+        <!-- Panel Derecho - Detalles -->
+        <div class="right-panel">
+            <div class="detalle-container">
+                <div class="detalle-header">
+                    <h3 id="tituloDetalle">📦 Selecciona un almacén</h3>
+                </div>
+
+                <div id="contenidoDetalle">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📦</div>
+                        <p>Selecciona un almacén de la lista para ver sus detalles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Almacén -->
+    <div class="modal-overlay" id="modalAlmacen">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="tituloModalAlmacen">Nuevo Almacén</h3>
+                <button class="btn-close" onclick="cerrarModalAlmacen()">×</button>
+            </div>
+            <form id="formAlmacen" onsubmit="guardarAlmacen(event)">
+                <div class="form-group">
+                    <label>Número de Seguimiento</label>
+                    <input type="text" id="numeroSeguimiento" required placeholder="Ej: ALM-001">
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="ubicacion" required placeholder="Ej: Bodega Principal">
+                </div>
+                <div class="form-group">
+                    <label>Capacidad (unidades)</label>
+                    <input type="number" id="capacidad" required placeholder="Ej: 1000">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal btn-cancelar" onclick="cerrarModalAlmacen()">Cancelar</button>
+                    <button type="submit" class="btn-modal btn-guardar">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Items (Materias Primas, Herramientas, Medicamentos) -->
+    <div class="modal-overlay" id="modalItem">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="tituloModalItem">Agregar Item</h3>
+                <button class="btn-close" onclick="cerrarModalItem()">×</button>
+            </div>
+            <form id="formItem" onsubmit="guardarItem(event)">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="itemNombre" required placeholder="Nombre del item">
+                </div>
+                <div class="form-group">
+                    <label>Cantidad</label>
+                    <input type="number" id="itemCantidad" required placeholder="Cantidad disponible">
+                </div>
+                <div class="form-group">
+                    <label>Precio Unitario</label>
+                    <input type="number" step="0.01" id="itemPrecio" required placeholder="Precio por unidad">
+                </div>
+                <div class="form-group">
+                    <label>Proveedor ID</label>
+                    <input type="number" id="itemProveedor" required placeholder="ID del proveedor">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal btn-cancelar" onclick="cerrarModalItem()">Cancelar</button>
+                    <button type="submit" class="btn-modal btn-guardar">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>

@@ -9,10 +9,9 @@ import { Navbar } from './core/navbar/navbar';
 import { Header } from './core/header/header';
 import { Home } from './pages/home/home';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Cosechas } from './pages/cosechas/cosechas';
 import { Lotes } from './pages/lotes/lotes';
 import { Apiarios } from './pages/apiarios/apiarios';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, provideHttpClient, withFetch } from '@angular/common/http'; // ✅ AGREGAR withFetch
 import { Almacenes } from './pages/almacenes/almacenes';
 import { Usuarios } from './pages/usuarios/usuarios';
 import { HistorialMedico } from './pages/historial-medico/historial-medico';
@@ -23,6 +22,8 @@ import { Footer } from './core/footer/footer';
 import { VerificacionOTP } from './auth/verificacion-otp/verificacion-otp';
 import { CambioDeContrasena } from './auth/cambio-de-contrasena/cambio-de-contrasena';
 import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal/cambio-de-contrasena-temporal';
+import { Produccion } from './pages/produccion/produccion/produccion';
+import { Toast } from './core/toast/toast';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,6 @@ import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal
     Login,
     ForgotPassword,
     Home,
-    Cosechas,
     Lotes,
     Apiarios,
     Almacenes,
@@ -42,14 +42,15 @@ import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal
     Footer,
     VerificacionOTP,
     CambioDeContrasena,
-    CambioDeContrasenaTemporal
-  // 
+    CambioDeContrasenaTemporal,
+    Produccion,
+    Toast,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    HttpClientModule,
+    HttpClientModule, // ✅ MANTENER para compatibilidad
     Navbar,
     Header,
     FormsModule
@@ -57,7 +58,8 @@ import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideClientHydration(withEventReplay())
+    provideClientHydration(withEventReplay()),
+    provideHttpClient(withFetch()) 
   ],
   bootstrap: [App]
 })

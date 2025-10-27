@@ -1,66 +1,289 @@
-<div class="apiarios-container">
-  <div class="header">
-    <h2>Lista de Apiarios</h2>
-    <div class="actions">
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Buscar por ubicación..."
-          [(ngModel)]="terminoBusqueda"
-        />
-        <span class="material-icons search-icon">search</span>
-      </div>
-      <button class="btn add" (click)="abrirFormulario()">
-        <span class="material-icons">add_circle</span> Agregar Apiario
-      </button>
-    </div>
-  </div>
-
-  <div class="lista-apiarios">
-    <div
-      class="apiario-card"
-      *ngFor="let apiario of filtrarApiarios()"
-    >
-      <div class="info">
-        <h3>Apiario #{{ apiario.numeroApiario }}</h3>
-        <p><strong>Ubicación:</strong> {{ apiario.ubicacion }}</p>
-        <p><strong>Salud:</strong> {{ apiario.salud }}</p>
-        <p><strong>Medición Actual:</strong> {{ apiario.medicionActual }}</p>
-      </div>
-      <div class="acciones">
-        <button class="btn edit" (click)="editarApiario(apiario)">
-          <span class="material-icons">edit</span>
-        </button>
-        <button class="btn delete" (click)="eliminarApiario(apiario)">
-          <span class="material-icons">delete</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Formulario -->
-  <div class="modal" *ngIf="mostrarFormulario">
-    <div class="modal-content">
-      <h3>{{ editando ? 'Editar Apiario' : 'Agregar Apiario' }}</h3>
-      <form (ngSubmit)="guardarApiario()">
-        <label>Número de Apiario:</label>
-        <input type="number" [(ngModel)]="apiarioSeleccionado.numeroApiario" name="numeroApiario" required />
-        <label>Ubicación:</label>
-        <input type="text" [(ngModel)]="apiarioSeleccionado.ubicacion" name="ubicacion" required />
-        <label>Salud:</label>
-        <input type="text" [(ngModel)]="apiarioSeleccionado.salud" name="salud" required />
-        <label>Medición Actual:</label>
-        <input type="text" [(ngModel)]="apiarioSeleccionado.medicionActual" name="medicionActual" />
-
-        <div class="modal-actions">
-          <button class="btn save" type="submit">
-            <span class="material-icons">check</span> Guardar
-          </button>
-          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
-            <span class="material-icons">close</span> Cancelar
-          </button>
+<div class="container">
+    <!-- Panel Izquierdo - Lista de Apiarios -->
+    <div class="left-panel">
+        <div class="panel-header">
+            <h2><span>🐝</span> Apiarios</h2>
+            <button class="btn-nuevo-apiario" (click)="abrirModalApiario()">
+                <span>➕</span> Nuevo
+            </button>
         </div>
-      </form>
+        
+        <div class="apiarios-lista">
+            <div 
+                *ngFor="let apiario of apiarios" 
+                class="apiario-item"
+                [class.active]="apiarioSeleccionado?.id === apiario.id"
+                (click)="seleccionarApiario(apiario)">
+                <div class="apiario-header">
+                    <span class="apiario-numero">Apiario #{{ apiario.numeroApiario }}</span>
+                    <span class="apiario-badge" [ngClass]="obtenerClaseBadge(apiario.salud)">
+                        {{ apiario.salud }}
+                    </span>
+                </div>
+                <div class="apiario-datos">
+                    <div class="dato-row">
+                        <span class="dato-label">📍 Ubicación:</span>
+                        <span class="dato-valor">{{ apiario.ubicacion }}</span>
+                    </div>
+                    <div class="dato-row">
+                        <span class="dato-label">💊 Receta:</span>
+                        <span class="dato-valor">{{ apiario.receta ? 'Activa' : 'Sin receta' }}</span>
+                    </div>
+                    <div class="dato-row">
+                        <span class="dato-label">📋 Historial:</span>
+                        <span class="dato-valor">{{ contarMedicamentos(apiario) }} medicamentos</span>
+                    </div>
+                </div>
+                <div class="botones-container">
+                    <button class="btn btn-editar" (click)="editarApiario(apiario, $event)">✏️ Editar</button>
+                    <button class="btn btn-receta" (click)="abrirModalReceta(apiario, $event)">💊 Receta</button>
+                    <button class="btn btn-eliminar" (click)="eliminarApiario(apiario, $event)">🗑️ Eliminar</button>
+                </div>
+            </div>
+
+            <div *ngIf="cargando" class="empty-state">
+                <div class="empty-state-icon">⏳</div>
+                <p>Cargando apiarios...</p>
+            </div>
+
+            <div *ngIf="!cargando && apiarios.length === 0" class="empty-state">
+                <div class="empty-state-icon">🐝</div>
+                <p>No hay apiarios registrados</p>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Panel Derecho - Detalles y Sugerencias -->
+    <div class="right-panel">
+        <!-- Detalles del Apiario -->
+        <div class="detalle-container">
+            <div class="detalle-header">
+                <h3 *ngIf="!apiarioSeleccionado">🐝 Selecciona un apiario</h3>
+                <h3 *ngIf="apiarioSeleccionado">
+                    🐝 Apiario #{{ apiarioSeleccionado.numeroApiario }} - {{ apiarioSeleccionado.ubicacion }}
+                </h3>
+            </div>
+
+            <!-- Estado vacío -->
+            <div *ngIf="!apiarioSeleccionado" class="empty-state">
+                <div class="empty-state-icon">🐝</div>
+                <p>Selecciona un apiario de la lista para ver sus detalles</p>
+            </div>
+
+            <!-- Detalles del apiario seleccionado -->
+            <div *ngIf="apiarioSeleccionado" class="info-section">
+                <!-- Información General -->
+                <div class="info-card">
+                    <div class="info-title">📊 Información General</div>
+                    <div class="info-content">
+                        <div class="dato-row">
+                            <span class="dato-label">Estado de Salud:</span>
+                            <span class="dato-valor">{{ apiarioSeleccionado.salud }}</span>
+                        </div>
+                        <div class="dato-row">
+                            <span class="dato-label">Ubicación:</span>
+                            <span class="dato-valor">{{ apiarioSeleccionado.ubicacion }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receta Activa -->
+                <div *ngIf="apiarioSeleccionado.receta" class="info-card receta-activa">
+                    <div class="info-title">💊 Receta Activa</div>
+                    <div class="info-content">
+                        <div class="dato-row">
+                            <span class="dato-label">Descripción:</span>
+                            <span class="dato-valor">{{ apiarioSeleccionado.receta.descripcion }}</span>
+                        </div>
+                        <div class="dato-row">
+                            <span class="dato-label">Fecha:</span>
+                            <span class="dato-valor">{{ formatearFecha(apiarioSeleccionado.receta.fechaDeCreacion) }}</span>
+                        </div>
+                        <div class="dato-row">
+                            <span class="dato-label">Medicamentos:</span>
+                            <span class="dato-valor">{{ contarMedicamentos(apiarioSeleccionado) }}</span>
+                        </div>
+                        
+
+                        
+                        <button class="btn btn-eliminar" style="width: 100%; margin-top: 15px;" 
+                                (click)="eliminarReceta(apiarioSeleccionado)">
+                            ✅ Marcar como Cumplida
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sin Receta -->
+                <div *ngIf="!apiarioSeleccionado.receta" class="info-card">
+                    <div class="info-title">💊 Sin Receta Activa</div>
+                    <div class="info-content">
+                        <p>Este apiario no tiene recetas médicas activas en este momento.</p>
+                    </div>
+                </div>
+
+                <!-- Historial Médico -->
+                <div class="info-card">
+                    <div class="info-title">📋 Historial Médico</div>
+                    <div class="info-content">
+                        <div *ngIf="apiarioSeleccionado.historialMedico">
+                            <div class="dato-row">
+                                <span class="dato-label">Fecha:</span>
+                                <span class="dato-valor">{{ formatearFecha(apiarioSeleccionado.historialMedico.fechaAplicacion) }}</span>
+                            </div>
+                            <div class="dato-row">
+                                <span class="dato-label">Notas:</span>
+                                <span class="dato-valor">{{ apiarioSeleccionado.historialMedico.notas || 'Sin notas' }}</span>
+                            </div>
+                        </div>
+                        <p *ngIf="!apiarioSeleccionado.historialMedico">
+                            Sin registros en el historial médico.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sugerencias -->
+        <div class="sugerencias-container">
+            <div class="sugerencias-header">
+                <h3>💡 Sugerencias de Mejora</h3>
+            </div>
+
+            <div class="sugerencia-item">
+                <div class="sugerencia-titulo">🌸 Aumentar Flora Disponible</div>
+                <div class="sugerencia-texto">
+                    Considera plantar más flores melíferas cerca del apiario. La proximidad de fuentes de néctar puede aumentar el rendimiento hasta un 20%.
+                </div>
+            </div>
+
+            <div class="sugerencia-item">
+                <div class="sugerencia-titulo">🔍 Inspección Regular</div>
+                <div class="sugerencia-texto">
+                    Realiza revisiones cada 7-10 días durante la temporada activa. Esto permite detectar problemas tempranamente y mantener colonias saludables.
+                </div>
+            </div>
+
+            <div class="sugerencia-item">
+                <div class="sugerencia-titulo">🍯 Optimizar Momento de Cosecha</div>
+                <div class="sugerencia-texto">
+                    El mejor momento para cosechar es cuando al menos el 80% de las celdas están operculadas. Esto garantiza la calidad y madurez de la miel.
+                </div>
+            </div>
+
+            <div class="sugerencia-item">
+                <div class="sugerencia-titulo">👑 Control de Enjambrazón</div>
+                <div class="sugerencia-texto">
+                    Durante primavera, revisa y elimina celdas reales para prevenir la enjambrazón y mantener la población productiva en la colmena.
+                </div>
+            </div>
+
+            <div class="sugerencia-item">
+                <div class="sugerencia-titulo">🌡️ Manejo de Temperatura</div>
+                <div class="sugerencia-texto">
+                    Asegura buena ventilación en verano y aislamiento en invierno. Las colmenas con temperatura estable son más productivas.
+                </div>
+            </div>
+
+            <div class="sugerencia-item">
+                <div class="sugerencia-titulo">💊 Prevención de Enfermedades</div>
+                <div class="sugerencia-texto">
+                    Implementa un programa de prevención contra varroa. Los tratamientos preventivos reducen la mortalidad hasta un 30%.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Apiario -->
+<div class="modal-overlay" [class.active]="mostrarModalApiario">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>{{ apiarioEditando ? 'Editar Apiario' : 'Nuevo Apiario' }}</h3>
+            <button class="btn-close" (click)="cerrarModalApiario()">×</button>
+        </div>
+        <form (ngSubmit)="guardarApiario()">
+            <div class="form-group">
+                <label>Número de Apiario</label>
+                <input type="number" [(ngModel)]="formApiario.numeroApiario" 
+                       name="numeroApiario" required placeholder="Ej: 1">
+            </div>
+            <div class="form-group">
+                <label>Ubicación</label>
+                <input type="text" [(ngModel)]="formApiario.ubicacion" 
+                       name="ubicacion" required placeholder="Ej: Campo Norte">
+            </div>
+            <div class="form-group">
+                <label>Estado de Salud</label>
+                <select [(ngModel)]="formApiario.salud" name="salud" required>
+                    <option value="">Seleccione...</option>
+                    <option value="Buena">Buena</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Crítica">Crítica</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-modal btn-cancelar" (click)="cerrarModalApiario()">Cancelar</button>
+                <button type="submit" class="btn-modal btn-guardar" [disabled]="cargando">
+                    {{ cargando ? 'Guardando...' : 'Guardar' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Receta -->
+<div class="modal-overlay" [class.active]="mostrarModalReceta">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Agregar Receta Médica</h3>
+            <button class="btn-close" (click)="cerrarModalReceta()">×</button>
+        </div>
+        <form (ngSubmit)="guardarReceta()">
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea [(ngModel)]="formReceta.descripcion" 
+                          name="descripcion" rows="3" required
+                          placeholder="Descripción de la receta..."></textarea>
+            </div>
+            
+            <!-- Lista dinámica de medicamentos -->
+            <div class="medicamentos-section">
+                <div class="section-header">
+                    <label>Medicamentos</label>
+                    <button type="button" class="btn-agregar" (click)="agregarMedicamento()">
+                        ➕ Agregar Medicamento
+                    </button>
+                </div>
+                
+                <div *ngFor="let medicamento of formReceta.medicamentos; let i = index" 
+                     class="medicamento-item">
+                    <div class="medicamento-header">
+                        <span>Medicamento {{ i + 1 }}</span>
+                        <button type="button" class="btn-eliminar-medicamento" 
+                                (click)="removerMedicamento(i)" *ngIf="formReceta.medicamentos.length > 1">
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" 
+                               [(ngModel)]="medicamento.id" 
+                               [name]="'medicamentoId_' + i"
+                               required 
+                               placeholder="ID del medicamento">
+                    </div>
+                </div>
+                
+                <div *ngIf="formReceta.medicamentos.length === 0" class="empty-medicamentos">
+                    <p>No hay medicamentos agregados</p>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-modal btn-cancelar" (click)="cerrarModalReceta()">Cancelar</button>
+                <button type="submit" class="btn-modal btn-guardar" [disabled]="cargando">
+                    {{ cargando ? 'Guardando...' : 'Guardar' }}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
