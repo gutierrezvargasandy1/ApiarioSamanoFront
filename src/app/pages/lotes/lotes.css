@@ -464,7 +464,9 @@ body {
         flex: none;
         max-height: 400px;
     }
-}-overlay {
+}
+
+.modal-overlay { /* ← CORREGIDO */
     position: fixed;
     top: 0;
     left: 0;
@@ -480,4 +482,3 @@ body {
 .modal-overlay.active {
     display: flex;
 }
-
