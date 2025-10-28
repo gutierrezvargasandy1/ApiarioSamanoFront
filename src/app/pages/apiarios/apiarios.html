@@ -62,6 +62,9 @@
                 <h3 *ngIf="apiarioSeleccionado">
                     🐝 Apiario #{{ apiarioSeleccionado.numeroApiario }} - {{ apiarioSeleccionado.ubicacion }}
                 </h3>
+                <button class="btn-sugerencias" (click)="abrirModalSugerencias()">
+    💡          Sugerencias IA
+                </button>
             </div>
 
             <!-- Estado vacío -->
@@ -103,8 +106,6 @@
                             <span class="dato-label">Medicamentos:</span>
                             <span class="dato-valor">{{ contarMedicamentos(apiarioSeleccionado) }}</span>
                         </div>
-                        
-
                         
                         <button class="btn btn-eliminar" style="width: 100%; margin-top: 15px;" 
                                 (click)="eliminarReceta(apiarioSeleccionado)">
@@ -235,55 +236,244 @@
 <div class="modal-overlay" [class.active]="mostrarModalReceta">
     <div class="modal">
         <div class="modal-header">
-            <h3>Agregar Receta Médica</h3>
+            <h3>💊 Agregar Receta Médica</h3>
             <button class="btn-close" (click)="cerrarModalReceta()">×</button>
         </div>
         <form (ngSubmit)="guardarReceta()">
             <div class="form-group">
-                <label>Descripción</label>
+                <label>📝 Descripción de la Receta</label>
                 <textarea [(ngModel)]="formReceta.descripcion" 
-                          name="descripcion" rows="3" required
-                          placeholder="Descripción de la receta..."></textarea>
+                          name="descripcion" rows="4" required
+                          placeholder="Describe los síntomas, tratamiento y recomendaciones..."
+                          class="descripcion-textarea"></textarea>
             </div>
             
             <!-- Lista dinámica de medicamentos -->
             <div class="medicamentos-section">
                 <div class="section-header">
-                    <label>Medicamentos</label>
-                    <button type="button" class="btn-agregar" (click)="agregarMedicamento()">
-                        ➕ Agregar Medicamento
+                    <label>💊 Medicamentos para la Receta</label>
+                    <button type="button" class="btn-agregar" (click)="agregarMedicamento()" 
+                            [disabled]="cargandoMedicamentos || medicamentosDisponibles.length === 0">
+                        <span *ngIf="!cargandoMedicamentos">➕</span>
+                        <span *ngIf="cargandoMedicamentos">⏳</span>
+                        {{ cargandoMedicamentos ? 'Cargando...' : 'Agregar Medicamento' }}
                     </button>
                 </div>
-                
-                <div *ngFor="let medicamento of formReceta.medicamentos; let i = index" 
-                     class="medicamento-item">
-                    <div class="medicamento-header">
-                        <span>Medicamento {{ i + 1 }}</span>
-                        <button type="button" class="btn-eliminar-medicamento" 
-                                (click)="removerMedicamento(i)" *ngIf="formReceta.medicamentos.length > 1">
-                            🗑️
-                        </button>
+
+                <!-- Estado de carga de medicamentos -->
+                <div *ngIf="cargandoMedicamentos" class="loading-medicamentos">
+                    <div class="loading-spinner">⏳</div>
+                    <p>Cargando lista de medicamentos disponibles...</p>
+                </div>
+
+                <!-- Estado sin medicamentos disponibles -->
+                <div *ngIf="!cargandoMedicamentos && medicamentosDisponibles.length === 0" class="no-medicamentos">
+                    <div class="warning-icon">⚠️</div>
+                    <p>No hay medicamentos disponibles en el inventario</p>
+                    <small>Agrega medicamentos al sistema antes de crear recetas</small>
+                </div>
+
+                <!-- Información de medicamentos disponibles -->
+                <div *ngIf="!cargandoMedicamentos && medicamentosDisponibles.length > 0 && formReceta.medicamentos.length === 0" 
+                     class="medicamentos-disponibles-info">
+                    <div class="info-header">
+                        <span class="info-icon">ℹ️</span>
+                        <strong>Medicamentos disponibles: {{ medicamentosDisponibles.length }}</strong>
                     </div>
-                    <div class="form-group">
-                        <input type="number" 
-                               [(ngModel)]="medicamento.id" 
-                               [name]="'medicamentoId_' + i"
-                               required 
-                               placeholder="ID del medicamento">
-                    </div>
+                    <small>Haz clic en "Agregar Medicamento" para comenzar a seleccionar</small>
                 </div>
                 
-                <div *ngIf="formReceta.medicamentos.length === 0" class="empty-medicamentos">
-                    <p>No hay medicamentos agregados</p>
+                <!-- Lista de medicamentos agregados -->
+                <div *ngIf="!cargandoMedicamentos && formReceta.medicamentos.length > 0">
+                    <div *ngFor="let medicamento of formReceta.medicamentos; let i = index" 
+                         class="medicamento-item">
+                        <div class="medicamento-header">
+                            <span class="medicamento-numero">Medicamento {{ i + 1 }}</span>
+                            <button type="button" class="btn-eliminar-medicamento" 
+                                    (click)="removerMedicamento(i)">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Seleccionar Medicamento *</label>
+                            <select 
+                                [(ngModel)]="medicamento.id" 
+                                [name]="'medicamentoId_' + i"
+                                required
+                                class="medicamento-select">
+                                <option [value]="0">-- Selecciona un medicamento --</option>
+                                <option *ngFor="let med of medicamentosDisponibles" 
+                                        [value]="med.id"
+                                        [disabled]="esMedicamentoDuplicado(med.id, i)">
+                                    {{ med.nombre }} - {{ med.descripcion }} (Stock: {{ med.cantidad }})
+                                </option>
+                            </select>
+                            
+                            <!-- Mostrar información del medicamento seleccionado -->
+                            <div *ngIf="medicamento.id > 0" class="medicamento-info">
+                                <div class="medicamento-detalle">
+                                    <strong>✅ Seleccionado:</strong> {{ obtenerNombreMedicamento(medicamento.id) }}
+                                </div>
+                                <div class="medicamento-stock" *ngIf="obtenerStockMedicamento(medicamento.id) !== undefined">
+                                    <strong>📦 Stock disponible:</strong> {{ obtenerStockMedicamento(medicamento.id) }} unidades
+                                </div>
+                            </div>
+
+                            <!-- Advertencia si el medicamento ya fue seleccionado -->
+                            <div *ngIf="medicamento.id > 0 && esMedicamentoDuplicado(medicamento.id, i)" 
+                                 class="medicamento-duplicado">
+                                ⚠️ Este medicamento ya fue agregado a la receta
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen de la receta -->
+            <div *ngIf="!cargandoMedicamentos && formReceta.medicamentos.length > 0" class="resumen-receta">
+                <div class="resumen-header">
+                    <h4>📋 Resumen de la Receta</h4>
+                </div>
+                <div class="resumen-content">
+                    <div class="resumen-item">
+                        <span class="resumen-label">Total de medicamentos:</span>
+                        <span class="resumen-value">{{ contarMedicamentosSeleccionados() }} de {{ formReceta.medicamentos.length }}</span>
+                    </div>
+                    <div class="resumen-item" *ngIf="contarMedicamentosSeleccionados() > 0">
+                        <span class="resumen-label">Medicamentos seleccionados:</span>
+                        <span class="resumen-value">
+                            <span *ngFor="let med of obtenerMedicamentosSeleccionados(); let last = last">
+                                {{ obtenerNombreMedicamento(med.id) }}{{ !last ? ', ' : '' }}
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </div>
             
             <div class="modal-actions">
-                <button type="button" class="btn-modal btn-cancelar" (click)="cerrarModalReceta()">Cancelar</button>
-                <button type="submit" class="btn-modal btn-guardar" [disabled]="cargando">
-                    {{ cargando ? 'Guardando...' : 'Guardar' }}
+                <button type="button" class="btn-modal btn-cancelar" (click)="cerrarModalReceta()" [disabled]="cargando">
+                    ❌ Cancelar
+                </button>
+                <button type="submit" class="btn-modal btn-guardar" 
+                        [disabled]="cargando || formReceta.medicamentos.length === 0 || cargandoMedicamentos || tieneMedicamentosInvalidos()">
+                    <span *ngIf="!cargando">💾</span>
+                    <span *ngIf="cargando">⏳</span>
+                    {{ cargando ? 'Guardando...' : 'Guardar Receta' }}
                 </button>
             </div>
+
+            <!-- Validaciones -->
+            <div *ngIf="!cargandoMedicamentos && formReceta.medicamentos.length > 0" class="validaciones">
+                <div *ngIf="tieneMedicamentosSinSeleccionar()" class="validacion-error">
+                    ⚠️ Todos los medicamentos deben estar seleccionados
+                </div>
+                <div *ngIf="tieneMedicamentosDuplicados()" class="validacion-error">
+                    ⚠️ Hay medicamentos duplicados en la receta
+                </div>
+                <div *ngIf="!tieneMedicamentosInvalidos()" class="validacion-success">
+                    ✅ Receta lista para guardar
+                </div>
+            </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal de Sugerencias IA -->
+<div class="modal-overlay" [class.active]="mostrarModalSugerencias">
+    <div class="modal modal-sugerencias">
+        <div class="modal-header">
+            <h3>💡 Asistente IA - Apiario #{{apiarioSeleccionado?.numeroApiario}}</h3>
+            <button class="btn-close" (click)="cerrarModalSugerencias()">×</button>
+        </div>
+
+        <div class="modal-content">
+            <!-- Resumen del Apiario -->
+            <div class="resumen-apiario">
+                <div class="resumen-header">
+                    <h4>📊 Resumen del Apiario</h4>
+                </div>
+                <div class="resumen-datos">
+                    <div class="dato-resumen">
+                        <span class="dato-label">📍 Ubicación:</span>
+                        <span class="dato-valor">{{apiarioSeleccionado?.ubicacion}}</span>
+                    </div>
+                    <div class="dato-resumen">
+                        <span class="dato-label">❤️ Estado de Salud:</span>
+                        <span class="dato-valor" [class]="'salud-' + apiarioSeleccionado?.salud?.toLowerCase()">
+                            {{apiarioSeleccionado?.salud}}
+                        </span>
+                    </div>
+                    <div class="dato-resumen">
+                        <span class="dato-label">💊 Receta Activa:</span>
+                        <span class="dato-valor">
+                            {{apiarioSeleccionado?.receta ? 'Sí' : 'No'}}
+                        </span>
+                    </div>
+                    <div class="dato-resumen" *ngIf="apiarioSeleccionado?.receta">
+                        <span class="dato-label">📝 Descripción:</span>
+                        <span class="dato-valor">{{apiarioSeleccionado?.receta?.descripcion}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sugerencias Automáticas -->
+            <div class="sugerencias-automaticas">
+                <div class="sugerencias-header">
+                    <h4>🎯 Sugerencias Automáticas</h4>
+                    <span class="badge-ia">IA</span>
+                </div>
+                <div class="sugerencias-lista">
+                    <div class="sugerencia-auto-item" *ngFor="let sugerencia of sugerenciasAutomaticas; let i = index">
+                        <div class="sugerencia-icono">💡</div>
+                        <div class="sugerencia-contenido">
+                            <div class="sugerencia-titulo">{{sugerencia.titulo}}</div>
+                            <div class="sugerencia-descripcion">{{sugerencia.descripcion}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat con IA -->
+            <div class="chat-ia">
+                <div class="chat-header">
+                    <h4>🤖 Consulta a la IA</h4>
+                    <span class="badge-online">En línea</span>
+                </div>
+                
+                <div class="chat-messages">
+                    <div class="message ia-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                Hola! Soy tu asistente de apicultura. ¿En qué puedo ayudarte con el apiario #{{apiarioSeleccionado?.numeroApiario}}?
+                            </div>
+                            <div class="message-time">Ahora</div>
+                        </div>
+                    </div>
+                    
+                    <div class="message user-message" *ngFor="let mensaje of mensajesChat">
+                        <div class="message-content">
+                            <div class="message-text">{{mensaje.texto}}</div>
+                            <div class="message-time">{{mensaje.tiempo}}</div>
+                        </div>
+                        <div class="message-avatar">👤</div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <textarea 
+                        [(ngModel)]="nuevaPregunta" 
+                        placeholder="Escribe tu pregunta sobre el apiario..."
+                        class="chat-input"
+                        (keydown.enter)="enviarPregunta($event)"
+                    ></textarea>
+                    <button class="btn-enviar" (click)="enviarPregunta()" [disabled]="!nuevaPregunta.trim()">
+                        <span>🚀</span>
+                        Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

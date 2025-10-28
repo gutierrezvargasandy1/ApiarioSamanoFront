@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiarioService } from '../../services/apiariosService/apiario-service';
+import { MedicamentosService, MedicamentosResponse } from '../../services/almaceneService/MedicamentosService/medicamentos-service';
 import { ToastService } from '../../services/toastService/toast-service';
 
 // Interfaces actualizadas según el servicio
@@ -77,16 +78,65 @@ export class Apiarios implements OnInit {
     medicamentos: [] as MedicamentoRequest[]
   };
   
+  // Lista de medicamentos disponibles
+  medicamentosDisponibles: MedicamentosResponse[] = [];
+  cargandoMedicamentos: boolean = false;
+  
   // Estado de carga
   cargando: boolean = false;
 
+  // Modal IA
+  mostrarModalSugerencias: boolean = false;
+  nuevaPregunta: string = '';
+  mensajesChat: any[] = [];
+
+  sugerenciasAutomaticas = [
+    {
+        titulo: 'Optimización de Alimentación',
+        descripcion: 'Basado en la ubicación y estado de salud, recomiendo ajustar el suplemento alimenticio.'
+    },
+    {
+        titulo: 'Prevención de Enfermedades',
+        descripcion: 'Considera implementar un programa de monitoreo para varroa durante los próximos 15 días.'
+    },
+    {
+        titulo: 'Mejora de Productividad',
+        descripcion: 'La ubicación actual es favorable, pero podrías aumentar la flora melífera en un 20%.'
+    }
+  ];
+
   constructor(
     private apiarioService: ApiarioService,
+    private medicamentosService: MedicamentosService,
     private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
     this.cargarApiarios();
+    this.cargarMedicamentosDisponibles();
+  }
+
+  // ==================== CARGA DE MEDICAMENTOS ====================
+  
+  cargarMedicamentosDisponibles(): void {
+    this.cargandoMedicamentos = true;
+    
+    this.medicamentosService.obtenerTodos().subscribe({
+      next: (response: any) => {
+        if (response.codigo === 200 && response.data) {
+          this.medicamentosDisponibles = response.data;
+          console.log('💊 Medicamentos cargados:', this.medicamentosDisponibles);
+        } else {
+          this.toastService.error('Error', response.descripcion || 'Error al cargar medicamentos');
+        }
+        this.cargandoMedicamentos = false;
+      },
+      error: (err: any) => {
+        console.error('❌ Error al cargar medicamentos:', err);
+        this.toastService.error('Error', 'No se pudieron cargar los medicamentos');
+        this.cargandoMedicamentos = false;
+      }
+    });
   }
 
   // ==================== CARGA DE DATOS ====================
@@ -252,6 +302,9 @@ export class Apiarios implements OnInit {
       medicamentos: []
     };
     this.mostrarModalReceta = true;
+    
+    // Recargar medicamentos disponibles cada vez que se abre el modal
+    this.cargarMedicamentosDisponibles();
   }
 
   cerrarModalReceta(): void {
@@ -271,7 +324,12 @@ export class Apiarios implements OnInit {
   removerMedicamento(index: number): void {
     this.formReceta.medicamentos.splice(index, 1);
   }
-  
+
+  // Método para obtener nombre del medicamento por ID
+  obtenerNombreMedicamento(id: number): string {
+    const medicamento = this.medicamentosDisponibles.find(m => m.id === id);
+    return medicamento ? medicamento.nombre : 'Medicamento no encontrado';
+  }
 
   guardarReceta(): void {
     if (!this.formReceta.descripcion || this.formReceta.medicamentos.length === 0) {
@@ -394,5 +452,93 @@ export class Apiarios implements OnInit {
   formatearFecha(fecha: string): string {
     if (!fecha) return '';
     return new Date(fecha).toLocaleDateString('es-ES');
+  }
+
+  // ==================== MODAL IA ====================
+
+  abrirModalSugerencias() {
+    this.mostrarModalSugerencias = true;
+  }
+
+  cerrarModalSugerencias() {
+    this.mostrarModalSugerencias = false;
+    this.nuevaPregunta = '';
+    this.mensajesChat = [];
+  }
+
+  enviarPregunta(event?: any) {
+    if (event) {
+        event.preventDefault();
+    }
+    
+    if (!this.nuevaPregunta.trim()) return;
+
+    // Agregar mensaje del usuario
+    this.mensajesChat.push({
+        texto: this.nuevaPregunta,
+        tiempo: 'Ahora',
+        tipo: 'usuario'
+    });
+
+    // Simular respuesta de IA
+    setTimeout(() => {
+        this.mensajesChat.push({
+            texto: 'He analizado tu consulta sobre el apiario. Basado en los datos, te recomiendo revisar el plan de alimentación y considerar una inspección más frecuente durante esta temporada.',
+            tiempo: 'Ahora',
+            tipo: 'ia'
+        });
+    }, 1000);
+
+    this.nuevaPregunta = '';
+  }
+
+  // ==================== MÉTODOS AUXILIARES PARA EL TEMPLATE ====================
+
+  // Verificar si un medicamento está duplicado
+  esMedicamentoDuplicado(medicamentoId: number, indiceActual: number): boolean {
+    if (!medicamentoId || medicamentoId === 0) return false;
+    return this.formReceta.medicamentos.some((med, index) => 
+      med.id === medicamentoId && index !== indiceActual
+    );
+  }
+
+  // Obtener stock de un medicamento
+  obtenerStockMedicamento(id: number): number | undefined {
+    const medicamento = this.medicamentosDisponibles.find(m => m.id === id);
+    return medicamento?.cantidad;
+  }
+
+  // Verificar si hay medicamentos duplicados en el índice actual
+  tieneMedicamentoDuplicado(medicamentoId: number, indiceActual: number): boolean {
+    if (!medicamentoId || medicamentoId === 0) return false;
+    return this.formReceta.medicamentos.some((med, index) => 
+      med.id === medicamentoId && index !== indiceActual
+    );
+  }
+
+  // Verificar si hay medicamentos sin seleccionar
+  tieneMedicamentosSinSeleccionar(): boolean {
+    return this.formReceta.medicamentos.some(med => !med.id || med.id === 0);
+  }
+
+  // Verificar si hay medicamentos duplicados en toda la receta
+  tieneMedicamentosDuplicados(): boolean {
+    const ids = this.formReceta.medicamentos.map(med => med.id).filter(id => id > 0);
+    return new Set(ids).size !== ids.length;
+  }
+
+  // Verificar si hay medicamentos inválidos
+  tieneMedicamentosInvalidos(): boolean {
+    return this.tieneMedicamentosSinSeleccionar() || this.tieneMedicamentosDuplicados();
+  }
+
+  // Contar medicamentos seleccionados
+  contarMedicamentosSeleccionados(): number {
+    return this.formReceta.medicamentos.filter(med => med.id > 0).length;
+  }
+
+  // Obtener lista de medicamentos seleccionados
+  obtenerMedicamentosSeleccionados(): MedicamentoRequest[] {
+    return this.formReceta.medicamentos.filter(med => med.id > 0);
   }
 }
