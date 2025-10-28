@@ -14,6 +14,8 @@ export class Usuarios implements OnInit {
   mostrarFormulario: boolean = false;
   editando: boolean = false;
   mensaje: string = ''; // ✅ mensaje visual
+  cargando: boolean = false; // ✅ Propiedad agregada para loading state
+  
   usuarioSeleccionado: Usuario = {
     nombre: '',
     apellidoPa: '',
@@ -30,13 +32,16 @@ export class Usuarios implements OnInit {
   }
 
   cargarUsuarios(): void {
+    this.cargando = true; // ✅ Activar loading
     this.usuariosService.obtenerUsuarios().subscribe({
       next: (response) => {
         this.usuarios = response.data || [];
         console.log('Usuarios cargados:', this.usuarios);
+        this.cargando = false; // ✅ Desactivar loading
       },
       error: (error) => {
         console.error('Error al obtener usuarios:', error);
+        this.cargando = false; // ✅ Desactivar loading en caso de error
       }
     });
   }
@@ -73,6 +78,7 @@ export class Usuarios implements OnInit {
 
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
+    this.editando = false;
   }
 
   mostrarMensaje(texto: string): void {
@@ -81,6 +87,8 @@ export class Usuarios implements OnInit {
   }
 
   guardarUsuario(): void {
+    this.cargando = true; // ✅ Activar loading al guardar
+    
     if (this.editando) {
       // ✅ Actualizar usuario
       this.usuariosService.actualizarUsuarioPorEmail(
@@ -92,10 +100,13 @@ export class Usuarios implements OnInit {
           const index = this.usuarios.findIndex(u => u.email === this.usuarioSeleccionado.email);
           if (index !== -1) this.usuarios[index] = { ...this.usuarioSeleccionado };
           this.cerrarFormulario();
+          this.cargando = false; // ✅ Desactivar loading
           this.mostrarMensaje('✅ Usuario actualizado correctamente');
         },
         error: (err) => {
           console.error('Error al actualizar usuario:', err);
+          this.cargando = false; // ✅ Desactivar loading en caso de error
+          this.mostrarMensaje('❌ Error al actualizar usuario');
         }
       });
     } else {
@@ -104,10 +115,13 @@ export class Usuarios implements OnInit {
         next: (respuesta) => {
           this.usuarios.push(this.usuarioSeleccionado); 
           this.cerrarFormulario();
+          this.cargando = false; // ✅ Desactivar loading
           this.mostrarMensaje('✅ Usuario agregado correctamente');
         },
         error: (err) => {
           console.error('Error al crear usuario:', err);
+          this.cargando = false; // ✅ Desactivar loading en caso de error
+          this.mostrarMensaje('❌ Error al crear usuario');
         }
       });
     }
@@ -119,6 +133,8 @@ export class Usuarios implements OnInit {
 
   eliminarUsuario(usuario: Usuario): void {
     if (confirm(`¿Seguro que deseas eliminar a ${usuario.nombre}?`)) {
+      this.cargando = true; // ✅ Activar loading al eliminar
+      
       this.usuariosService.obtenerUsuarioPorEmail(usuario.email).subscribe({
         next: (res) => {
           const id = res.data?.id;
@@ -126,18 +142,25 @@ export class Usuarios implements OnInit {
             this.usuariosService.eliminarUsuario(id).subscribe({
               next: () => {
                 this.usuarios = this.usuarios.filter(u => u.email !== usuario.email);
+                this.cargando = false; // ✅ Desactivar loading
                 this.mostrarMensaje('🗑️ Usuario eliminado correctamente');
               },
               error: (err) => {
                 console.error('Error al eliminar usuario:', err);
+                this.cargando = false; // ✅ Desactivar loading en caso de error
+                this.mostrarMensaje('❌ Error al eliminar usuario');
               }
             });
           } else {
             console.error('⚠️ No se encontró el ID del usuario para eliminar.');
+            this.cargando = false; // ✅ Desactivar loading
+            this.mostrarMensaje('⚠️ No se encontró el usuario');
           }
         },
         error: (err) => {
           console.error('Error al buscar usuario por email:', err);
+          this.cargando = false; // ✅ Desactivar loading en caso de error
+          this.mostrarMensaje('❌ Error al buscar usuario');
         }
       });
     }

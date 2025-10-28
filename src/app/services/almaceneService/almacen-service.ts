@@ -26,30 +26,28 @@ export interface Almacen {
 }
 
 export interface Herramientas {
-id: number;
-nombre:string;
-foto: string| null;
-almacen:Almacen | null;
-proveedor:Proveedor|null;
+  id: number;
+  nombre:string;
+  foto: string| null;
+  almacen:Almacen | null;
+  proveedor:Proveedor|null;
 }
 
-
 export interface MateriasPrimas{
-id:number;
-nombre:string;
-foto:string|null;
-cantidad: number;
-almacen : Almacen|null;
-proveedor: Proveedor|null;
+  id:number;
+  nombre:string;
+  foto:string|null;
+  cantidad: number;
+  almacen : Almacen|null;
+  proveedor: Proveedor|null;
 }
 
 export interface Medicamentos {
-id:number;
-nombre:string;
-descripcion:string;
-almacen:Almacen| null;
-proveedor:Proveedor|null;
-
+  id:number;
+  nombre:string;
+  descripcion:string;
+  almacen:Almacen| null;
+  proveedor:Proveedor|null;
 }
 
 export interface Proveedor {
@@ -61,6 +59,28 @@ export interface Proveedor {
   materialProvee:string;
 }
 
+// Interfaces para los nuevos endpoints
+export interface ReporteEspaciosResponse {
+  almacenId: number;
+  capacidadTotal: number;
+  espaciosInternos: number;
+  materiasPrimas: number;
+  herramientas: number;
+  medicamentos: number;
+  lotesExternos: number;
+  totalEspaciosOcupados: number;
+  espaciosDisponibles: number;
+  porcentajeOcupacion: number;
+  detalleLotes: LoteExterno[];
+}
+
+export interface LoteExterno {
+  id: number;
+  numeroSeguimiento: string;
+  tipoProducto: string;
+  fechaCreacion: string;
+  idAlmacen: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -80,6 +100,7 @@ export class AlmacenService {
     });
   }
 
+  // Métodos existentes
   crearAlmacen(request: AlmacenRequest): Observable<ResponseDTO<Almacen>> {
     return this.http.post<ResponseDTO<Almacen>>(
       `${this.apiUrl}/crear`,
@@ -106,6 +127,42 @@ export class AlmacenService {
   eliminarAlmacen(id: number): Observable<ResponseDTO<void>> {
     return this.http.delete<ResponseDTO<void>>(
       `${this.apiUrl}/${id}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // 🔄 NUEVO MÉTODO: Actualizar espacios ocupados automáticamente
+  actualizarEspaciosOcupados(idAlmacen: number): Observable<ResponseDTO<Almacen>> {
+    console.log(`🔄 Actualizando espacios ocupados para almacén ID: ${idAlmacen}`);
+    return this.http.put<ResponseDTO<Almacen>>(
+      `${this.apiUrl}/${idAlmacen}/actualizar-espacios`,
+      {}, // Body vacío para PUT
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // 📊 NUEVO MÉTODO: Obtener reporte completo de espacios ocupados
+  obtenerReporteEspacios(idAlmacen: number): Observable<ResponseDTO<ReporteEspaciosResponse>> {
+    console.log(`📊 Obteniendo reporte de espacios para almacén ID: ${idAlmacen}`);
+    return this.http.get<ResponseDTO<ReporteEspaciosResponse>>(
+      `${this.apiUrl}/${idAlmacen}/reporte-espacios`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // 🔍 MÉTODO ADICIONAL: Obtener espacios ocupados en tiempo real (sin actualizar)
+  obtenerEspaciosOcupadosActuales(idAlmacen: number): Observable<ResponseDTO<{
+    totalOcupados: number;
+    disponibles: number;
+    porcentajeOcupacion: number;
+  }>> {
+    console.log(`🔍 Consultando espacios actuales para almacén ID: ${idAlmacen}`);
+    return this.http.get<ResponseDTO<{
+      totalOcupados: number;
+      disponibles: number;
+      porcentajeOcupacion: number;
+    }>>(
+      `${this.apiUrl}/${idAlmacen}/espacios-actuales`,
       { headers: this.getHeaders() }
     );
   }

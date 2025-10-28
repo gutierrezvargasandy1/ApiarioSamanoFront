@@ -4,7 +4,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DataService } from '../../services/data/data';
 import { ToastService } from '../../services/toastService/toast-service';
-
+import { AudioService } from '../../services/Audio/audio-service';
 @Component({
   selector: 'app-login',
   standalone: false,
@@ -22,7 +22,8 @@ export class Login {
     private authService: AuthService,
     private router: Router,
     private dataService: DataService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private audioService: AudioService
   ) {}
 
   ngOnInit(): void {}
@@ -66,6 +67,7 @@ export class Login {
             this.toastService.success('Éxito', 'Inicia sesión con tu contraseña temporal.');
             this.router.navigate(['cambiar-contrasena-temporal']);
           } else {
+            this.audioService.play('assets/audios/Bienvenida.mp3', 0.6);
             this.router.navigate(['home']);
           }
         } else {

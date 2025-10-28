@@ -59,6 +59,11 @@
                         <span class="stat-value">{{ almacen.medicamentos?.length || 0 }}</span>
                         <span class="stat-label">Medicamentos</span>
                     </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">📋</span>
+                        <span class="stat-value">{{ lotesAlmacen?.length }}</span>
+                        <span class="stat-label">Lotes</span>
+                    </div>
                 </div>
 
                 <!-- Botones de acción -->
@@ -86,13 +91,7 @@
         </button>
     </div>
 </div>
-    <!-- Estado vacío -->
-    <div *ngIf="!cargando && almacenes.length === 0" class="empty-state">
-        <div class="empty-icon">📦</div>
-        <h3>No hay almacenes registrados</h3>
-        <p>Comienza creando tu primer almacén para organizar tus recursos</p>
 
-    </div>
 </div>
         
 
@@ -114,160 +113,384 @@
             </div>
 
             <!-- Detalles del almacén seleccionado -->
-            <div *ngIf="almacenSeleccionado" class="detalle-content">
-                <!-- Información General -->
-                <div class="detalle-section">
-                    <h4 class="section-title">📋 Información General</h4>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Número de Seguimiento:</label>
-                            <span class="info-value">{{ almacenSeleccionado.numeroSeguimiento }}</span>
+<!-- Detalles del almacén seleccionado -->
+<div *ngIf="almacenSeleccionado" class="detalle-content">
+    <!-- Información General -->
+    <div class="detalle-section">
+        <h4 class="section-title">📋 Información General</h4>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Número de Seguimiento:</label>
+                <span class="info-value">{{ almacenSeleccionado.numeroSeguimiento }}</span>
+            </div>
+            <div class="info-item">
+                <label>Ubicación:</label>
+                <span class="info-value">📍 {{ almacenSeleccionado.ubicacion }}</span>
+            </div>
+            <div class="info-item">
+                <label>Capacidad Total:</label>
+                <span class="info-value">{{ almacenSeleccionado.capacidad }} unidades</span>
+            </div>
+            <div class="info-item">
+                <label>Espacios Ocupados:</label>
+                <span class="info-value">{{ calcularEspaciosOcupados(almacenSeleccionado) }} unidades</span>
+            </div>
+            <div class="info-item">
+                <label>Porcentaje de Ocupación:</label>
+                <span class="info-value">
+                    <span class="porcentaje-badge" 
+                          [class]="'nivel-' + obtenerClasePorcentaje(calcularPorcentajeOcupacion(almacenSeleccionado))">
+                        {{ calcularPorcentajeOcupacion(almacenSeleccionado) }}%
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de progreso de capacidad -->
+    <div class="capacidad-section">
+        <div class="capacidad-header">
+            <span>Capacidad del Almacén</span>
+            <span class="capacidad-text">
+                {{ calcularEspaciosOcupados(almacenSeleccionado) }}/{{ almacenSeleccionado.capacidad }}
+            </span>
+        </div>
+        <div class="progress-bar large">
+            <div class="progress-fill" 
+                 [style.width.%]="calcularPorcentajeOcupacion(almacenSeleccionado)"
+                 [class]="'nivel-' + obtenerClasePorcentaje(calcularPorcentajeOcupacion(almacenSeleccionado))">
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas para los diferentes tipos de items -->
+    <div class="tabs-section">
+        <div class="tabs-header">
+            <button class="tab-btn" 
+                    [class.active]="tabActiva === 'materiasPrimas'"
+                    (click)="cambiarTab('materiasPrimas')">
+                📦 Materias Primas
+                <span class="tab-badge">{{ almacenSeleccionado.materiasPrimas?.length || 0 }}</span>
+            </button>
+            <button class="tab-btn" 
+                    [class.active]="tabActiva === 'herramientas'"
+                    (click)="cambiarTab('herramientas')">
+                🛠️ Herramientas
+                <span class="tab-badge">{{ almacenSeleccionado.herramientas?.length || 0 }}</span>
+            </button>
+            <button class="tab-btn" 
+                    [class.active]="tabActiva === 'medicamentos'"
+                    (click)="cambiarTab('medicamentos')">
+                💊 Medicamentos
+                <span class="tab-badge">{{ almacenSeleccionado.medicamentos?.length || 0 }}</span>
+            </button>
+            <!-- Nueva pestaña para Lotes -->
+            <button class="tab-btn" 
+                    [class.active]="tabActiva === 'lotes'"
+                    (click)="cambiarTab('lotes')">
+                📋 Lotes
+                <span class="tab-badge">{{ lotesAlmacen?.length || 0 }}</span>
+            </button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Botón para agregar nuevo item -->
+            <div class="tab-actions">
+                <button class="btn btn-primary btn-small" 
+                        (click)="abrirModalItem()"
+                        *ngIf="tabActiva !== 'lotes'">
+                    ➕ Agregar {{ obtenerNombreTab() }}
+                </button>
+                <!-- Botón para agregar nuevo lote -->
+                <button class="btn btn-primary btn-small" 
+                        (click)="abrirModalLote()"
+                        *ngIf="tabActiva === 'lotes'">
+                    ➕ Agregar Lote
+                </button>
+            </div>
+
+            <!-- Contenido de la pestaña activa -->
+            <div *ngIf="tabActiva !== 'lotes' && obtenerItemsActuales().length > 0" class="items-grid">
+                <div *ngFor="let item of obtenerItemsActuales()" 
+                     class="item-card">
+                    <div class="item-header">
+                        <h5 class="item-name">{{ item.nombre }}</h5>
+                        <div class="item-actions">
+                            <button class="btn-icon btn-edit" 
+                                    (click)="abrirModalItem(item); $event.stopPropagation()"
+                                    title="Editar">
+                                ✏️
+                            </button>
+                            <button class="btn-icon btn-delete" 
+                                    (click)="eliminarItem(item, $event)"
+                                    title="Eliminar">
+                                🗑️
+                            </button>
                         </div>
-                        <div class="info-item">
-                            <label>Ubicación:</label>
-                            <span class="info-value">📍 {{ almacenSeleccionado.ubicacion }}</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Capacidad Total:</label>
-                            <span class="info-value">{{ almacenSeleccionado.capacidad }} unidades</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Espacios Ocupados:</label>
-                            <span class="info-value">{{ calcularEspaciosOcupados(almacenSeleccionado) }} unidades</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Porcentaje de Ocupación:</label>
-                            <span class="info-value">
-                                <span class="porcentaje-badge" 
-                                      [class]="'nivel-' + obtenerClasePorcentaje(calcularPorcentajeOcupacion(almacenSeleccionado))">
-                                    {{ calcularPorcentajeOcupacion(almacenSeleccionado) }}%
-                                </span>
+                    </div>
+                    
+                    <div class="item-details">
+                        <!-- Información específica por tipo -->
+                        <div *ngIf="tabActiva === 'materiasPrimas'" class="item-info">
+                            <span class="item-stat">
+                                <strong>Cantidad:</strong> {{ item.cantidad }}
+                            </span>
+                            <span class="item-stat" *ngIf="item.proveedor">
+                                <strong>Proveedor:</strong> {{ item.proveedor.nombreEmpresa }}
                             </span>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Barra de progreso de capacidad -->
-                <div class="capacidad-section">
-                    <div class="capacidad-header">
-                        <span>Capacidad del Almacén</span>
-                        <span class="capacidad-text">
-                            {{ calcularEspaciosOcupados(almacenSeleccionado) }}/{{ almacenSeleccionado.capacidad }}
-                        </span>
-                    </div>
-                    <div class="progress-bar large">
-                        <div class="progress-fill" 
-                             [style.width.%]="calcularPorcentajeOcupacion(almacenSeleccionado)"
-                             [class]="'nivel-' + obtenerClasePorcentaje(calcularPorcentajeOcupacion(almacenSeleccionado))">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pestañas para los diferentes tipos de items -->
-                <div class="tabs-section">
-                    <div class="tabs-header">
-                        <button class="tab-btn" 
-                                [class.active]="tabActiva === 'materiasPrimas'"
-                                (click)="cambiarTab('materiasPrimas')">
-                            📦 Materias Primas
-                            <span class="tab-badge">{{ almacenSeleccionado.materiasPrimas?.length || 0 }}</span>
-                        </button>
-                        <button class="tab-btn" 
-                                [class.active]="tabActiva === 'herramientas'"
-                                (click)="cambiarTab('herramientas')">
-                            🛠️ Herramientas
-                            <span class="tab-badge">{{ almacenSeleccionado.herramientas?.length || 0 }}</span>
-                        </button>
-                        <button class="tab-btn" 
-                                [class.active]="tabActiva === 'medicamentos'"
-                                (click)="cambiarTab('medicamentos')">
-                            💊 Medicamentos
-                            <span class="tab-badge">{{ almacenSeleccionado.medicamentos?.length || 0 }}</span>
-                        </button>
-                    </div>
-
-                    <div class="tab-content">
-                        <!-- Botón para agregar nuevo item -->
-                        <div class="tab-actions">
-                            <button class="btn btn-primary btn-small" 
-                                    (click)="abrirModalItem()">
-                                ➕ Agregar {{ obtenerNombreTab() }}
-                            </button>
+                        <div *ngIf="tabActiva === 'herramientas'" class="item-info">
+                            <span class="item-stat" *ngIf="item.proveedor">
+                                <strong>Proveedor:</strong> {{ item.proveedor.nombreEmpresa }}
+                            </span>
                         </div>
 
-                        <!-- Contenido de la pestaña activa -->
-                        <div *ngIf="obtenerItemsActuales().length > 0" class="items-grid">
-                            <div *ngFor="let item of obtenerItemsActuales()" 
-                                 class="item-card">
-                                <div class="item-header">
-                                    <h5 class="item-name">{{ item.nombre }}</h5>
-                                    <div class="item-actions">
-                                        <button class="btn-icon btn-edit" 
-                                                (click)="abrirModalItem(item); $event.stopPropagation()"
-                                                title="Editar">
-                                            ✏️
-                                        </button>
-                                        <button class="btn-icon btn-delete" 
-                                                (click)="eliminarItem(item, $event)"
-                                                title="Eliminar">
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="item-details">
-                                    <!-- Información específica por tipo -->
-                                    <div *ngIf="tabActiva === 'materiasPrimas'" class="item-info">
-                                        <span class="item-stat">
-                                            <strong>Cantidad:</strong> {{ item.cantidad }}
-                                        </span>
-                                        <span class="item-stat" *ngIf="item.proveedor">
-                                            <strong>Proveedor:</strong> {{ item.proveedor.nombreEmpresa }}
-                                        </span>
-                                    </div>
-
-                                    <div *ngIf="tabActiva === 'herramientas'" class="item-info">
-                                        <span class="item-stat" *ngIf="item.proveedor">
-                                            <strong>Proveedor:</strong> {{ item.proveedor.nombreEmpresa }}
-                                        </span>
-                                    </div>
-
-                                    <div *ngIf="tabActiva === 'medicamentos'" class="item-info">
-                                        <span class="item-stat">
-                                            <strong>Cantidad:</strong> {{ item.cantidad }}
-                                        </span>
-                                        <span class="item-stat" *ngIf="item.descripcion">
-                                            <strong>Descripción:</strong> {{ item.descripcion }}
-                                        </span>
-                                        <span class="item-stat" *ngIf="item.proveedor">
-                                            <strong>Proveedor:</strong> {{ item.proveedor.nombreEmpresa }}
-                                        </span>
-                                    </div>
-
-                                    <!-- Foto si existe -->
-                                    <div *ngIf="item.foto" class="item-photo">
-                                        <img [src]="item.foto" [alt]="item.nombre" class="item-image">
-                                    </div>
-                                </div>
-                            </div>
+                        <div *ngIf="tabActiva === 'medicamentos'" class="item-info">
+                            <span class="item-stat">
+                                <strong>Cantidad:</strong> {{ item.cantidad }}
+                            </span>
+                            <span class="item-stat" *ngIf="item.descripcion">
+                                <strong>Descripción:</strong> {{ item.descripcion }}
+                            </span>
+                            <span class="item-stat" *ngIf="item.proveedor">
+                                <strong>Proveedor:</strong> {{ item.proveedor.nombreEmpresa }}
+                            </span>
                         </div>
 
-                        <!-- Estado vacío para la pestaña -->
-                        <div *ngIf="obtenerItemsActuales().length === 0" class="tab-empty-state">
-                            <div class="empty-icon">
-                                <span *ngIf="tabActiva === 'materiasPrimas'">📦</span>
-                                <span *ngIf="tabActiva === 'herramientas'">🛠️</span>
-                                <span *ngIf="tabActiva === 'medicamentos'">💊</span>
-                            </div>
-                            <h4>No hay {{ obtenerNombreTab() }}s registrados</h4>
-                            <p>Agrega tu primer {{ obtenerNombreTab().toLowerCase() }} para comenzar</p>
-                            <button class="btn btn-primary" (click)="abrirModalItem()">
-                                ➕ Agregar {{ obtenerNombreTab() }}
-                            </button>
+                        <!-- Foto si existe -->
+                        <div *ngIf="item.foto" class="item-photo">
+                            <img [src]="item.foto" [alt]="item.nombre" class="item-image">
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Contenido para la pestaña de Lotes -->
+            <div *ngIf="tabActiva === 'lotes' && lotesAlmacen && lotesAlmacen.length > 0" class="items-grid">
+                <div *ngFor="let lote of lotesAlmacen" 
+                     class="item-card">
+                    <div class="item-header">
+                        <h5 class="item-name">{{ lote.numeroSeguimiento }}</h5>
+                        <div class="item-actions">
+                            <button class="btn-icon btn-edit" 
+                                    (click)="abrirModalLote(lote); $event.stopPropagation()"
+                                    title="Editar">
+                                ✏️
+                            </button>
+                            <button class="btn-icon btn-delete" 
+                                    (click)="eliminarLote(lote, $event)"
+                                    title="Eliminar">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="item-details">
+                        <div class="item-info">
+                            <span class="item-stat">
+                                <strong>Tipo de Producto:</strong> {{ lote.tipoProducto }}
+                            </span>
+                            <span class="item-stat">
+                                <strong>Fecha de Creación:</strong> {{ lote.fechaCreacion | date:'dd/MM/yyyy' }}
+                            </span>
+                            <span class="item-stat">
+                                <strong>ID Almacén:</strong> {{ lote.idAlmacen }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado vacío para la pestaña -->
+            <div *ngIf="(tabActiva !== 'lotes' && obtenerItemsActuales().length === 0) || (tabActiva === 'lotes' && (!lotesAlmacen || lotesAlmacen.length === 0))" class="tab-empty-state">
+                <div class="empty-icon">
+                    <span *ngIf="tabActiva === 'materiasPrimas'">📦</span>
+                    <span *ngIf="tabActiva === 'herramientas'">🛠️</span>
+                    <span *ngIf="tabActiva === 'medicamentos'">💊</span>
+                    <span *ngIf="tabActiva === 'lotes'">📋</span>
+                </div>
+                <h4>No hay {{ obtenerNombreTab() }}s registrados</h4>
+                <p>Agrega tu primer {{ obtenerNombreTab().toLowerCase() }} para comenzar</p>
+                <button class="btn btn-primary" 
+        (click)="abrirModalItem()">
+    ➕ Agregar {{ obtenerNombreTab() }}
+</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Lotes -->
+<div class="modal-overlay" [class.active]="mostrarModalLote">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>{{ loteEditando ? 'Editar Lote' : 'Nuevo Lote' }}</h3>
+            <button class="btn-close" (click)="cerrarModalLote()">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label for="tipoProducto">Tipo de Producto *</label>
+            <input type="text" 
+                   id="tipoProducto" 
+                   [(ngModel)]="formLote.tipoProducto" 
+                   placeholder="Ingrese el tipo de producto">
+        </div>
+
+        <div class="form-group">
+            <label for="idAlmacen">ID Almacén *</label>
+            <input type="number" 
+                   id="idAlmacen" 
+                   [(ngModel)]="formLote.idAlmacen" 
+                   [value]="almacenSeleccionado?.id"
+                   [readonly]="true"
+                   placeholder="ID del almacén">
+            <small>Almacén actual: {{ almacenSeleccionado?.ubicacion }}</small>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancelar" (click)="cerrarModalLote()">Cancelar</button>
+            <button class="btn-modal btn-guardar" 
+                    (click)="guardarLote()"
+                    [disabled]="cargandoItems">
+                {{ cargandoItems ? 'Guardando...' : 'Guardar' }}
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Modal para Medicamentos -->
+<div class="modal-overlay" [class.active]="mostrarModalMedicamento">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>{{ medicamentoEditando ? 'Editar Medicamento' : 'Nuevo Medicamento' }}</h3>
+            <button class="btn-close" (click)="cerrarModalMedicamento()">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label for="medicamentoNombre">Nombre *</label>
+            <input type="text" 
+                   id="medicamentoNombre" 
+                   [(ngModel)]="formMedicamento.nombre" 
+                   placeholder="Ingrese el nombre del medicamento">
+        </div>
+
+        <div class="form-group">
+            <label for="medicamentoDescripcion">Descripción</label>
+            <textarea 
+                id="medicamentoDescripcion" 
+                [(ngModel)]="formMedicamento.descripcion" 
+                placeholder="Descripción del medicamento"
+                rows="3">
+            </textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="medicamentoCantidad">Cantidad *</label>
+            <input type="number" 
+                   id="medicamentoCantidad" 
+                   [(ngModel)]="formMedicamento.cantidad" 
+                   placeholder="Cantidad disponible">
+        </div>
+
+        <div class="form-group">
+            <label for="medicamentoProveedor">ID Proveedor *</label>
+            <input type="number" 
+                   id="medicamentoProveedor" 
+                   [(ngModel)]="formMedicamento.idProveedor" 
+                   placeholder="ID del proveedor">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancelar" (click)="cerrarModalMedicamento()">Cancelar</button>
+            <button class="btn-modal btn-guardar" 
+                    (click)="guardarMedicamento()"
+                    [disabled]="cargandoItems">
+                {{ cargandoItems ? 'Guardando...' : 'Guardar' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Herramientas -->
+<div class="modal-overlay" [class.active]="mostrarModalHerramienta">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>{{ herramientaEditando ? 'Editar Herramienta' : 'Nueva Herramienta' }}</h3>
+            <button class="btn-close" (click)="cerrarModalHerramienta()">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label for="herramientaNombre">Nombre *</label>
+            <input type="text" 
+                   id="herramientaNombre" 
+                   [(ngModel)]="formHerramienta.nombre" 
+                   placeholder="Ingrese el nombre de la herramienta">
+        </div>
+
+        <div class="form-group">
+            <label for="herramientaProveedor">ID Proveedor *</label>
+            <input type="number" 
+                   id="herramientaProveedor" 
+                   [(ngModel)]="formHerramienta.idProveedor" 
+                   placeholder="ID del proveedor">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancelar" (click)="cerrarModalHerramienta()">Cancelar</button>
+            <button class="btn-modal btn-guardar" 
+                    (click)="guardarHerramienta()"
+                    [disabled]="cargandoItems">
+                {{ cargandoItems ? 'Guardando...' : 'Guardar' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Materias Primas -->
+<div class="modal-overlay" [class.active]="mostrarModalMateriaPrima">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>{{ materiaPrimaEditando ? 'Editar Materia Prima' : 'Nueva Materia Prima' }}</h3>
+            <button class="btn-close" (click)="cerrarModalMateriaPrima()">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label for="materiaPrimaNombre">Nombre *</label>
+            <input type="text" 
+                   id="materiaPrimaNombre" 
+                   [(ngModel)]="formMateriaPrima.nombre" 
+                   placeholder="Ingrese el nombre de la materia prima">
+        </div>
+
+        <div class="form-group">
+            <label for="materiaPrimaCantidad">Cantidad *</label>
+            <input type="number" 
+                   id="materiaPrimaCantidad" 
+                   [(ngModel)]="formMateriaPrima.cantidad" 
+                   placeholder="Cantidad disponible">
+        </div>
+
+        <div class="form-group">
+            <label for="materiaPrimaProveedor">ID Proveedor *</label>
+            <input type="number" 
+                   id="materiaPrimaProveedor" 
+                   [(ngModel)]="formMateriaPrima.idProveedor" 
+                   placeholder="ID del proveedor">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancelar" (click)="cerrarModalMateriaPrima()">Cancelar</button>
+            <button class="btn-modal btn-guardar" 
+                    (click)="guardarMateriaPrima()"
+                    [disabled]="cargandoItems">
+                {{ cargandoItems ? 'Guardando...' : 'Guardar' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
         </div>
     </div>
 </div>
@@ -300,7 +523,6 @@
                     placeholder="Ej: 1000">
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn-modal btn-cancelar" (click)="cerrarModalAlmacen()">Cancelar</button>
                 <button type="button" class="btn-modal btn-guardar" (click)="guardarAlmacen()">Guardar</button>
             </div>
         </form>

@@ -1,72 +1,283 @@
-
-<div class="herramientas-container">
-  <div class="header">
-    <h2>Gestión de Herramientas</h2>
-    <div class="actions">
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Buscar herramienta..."
-          [(ngModel)]="terminoBusqueda"
-        />
-        <span class="material-icons search-icon">search</span>
-      </div>
-      <button class="btn add" (click)="abrirFormulario()">
-        <span class="material-icons">add_circle</span> Nueva Herramienta
-      </button>
-    </div>
-  </div>
-
-  <!-- Catálogo de herramientas -->
-  <div class="catalogo">
-    <div class="card" *ngFor="let herramienta of filtrarHerramientas()">
-      <img [src]="herramienta.imagen" alt="{{ herramienta.nombre }}" />
-      <h3>{{ herramienta.nombre }}</h3>
-      <p><strong>Estado:</strong> {{ herramienta.estado }}</p>
-      <p><strong>Cantidad:</strong> {{ herramienta.cantidad }}</p>
-
-      <div class="card-actions">
-        <button class="btn edit" (click)="editarHerramienta(herramienta)">
-          <span class="material-icons">edit</span>
-        </button>
-        <button class="btn delete" (click)="eliminarHerramienta(herramienta)">
-          <span class="material-icons">delete</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para agregar o editar -->
-  <div class="modal" *ngIf="mostrarFormulario">
-    <div class="modal-content">
-      <h3>{{ editando ? 'Editar Herramienta' : 'Agregar Herramienta' }}</h3>
-
-      <form (ngSubmit)="guardarHerramienta()">
-        <label>Nombre:</label>
-        <input type="text" [(ngModel)]="herramientaSeleccionada.nombre" name="nombre" required />
-
-        <label>Estado:</label>
-        <select [(ngModel)]="herramientaSeleccionada.estado" name="estado" required>
-          <option value="Disponible">Disponible</option>
-          <option value="En uso">En uso</option>
-          <option value="En reparación">En reparación</option>
-        </select>
-
-        <label>Cantidad:</label>
-        <input type="number" [(ngModel)]="herramientaSeleccionada.cantidad" name="cantidad" required />
-
-        <label>URL de Imagen:</label>
-        <input type="text" [(ngModel)]="herramientaSeleccionada.imagen" name="imagen" placeholder="https://..." />
-
-        <div class="modal-actions">
-          <button class="btn save" type="submit">
-            <span class="material-icons">check</span> Guardar
-          </button>
-          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
-            <span class="material-icons">close</span> Cancelar
-          </button>
+<div class="container">
+    <!-- Panel Izquierdo - Lista de Herramientas -->
+    <div class="left-panel">
+        <div class="panel-header">
+            <h2><span>🔧</span> Herramientas</h2>
+            <button class="btn-nuevo" (click)="abrirFormulario()">
+                <span>➕</span> Nueva
+            </button>
         </div>
-      </form>
+        
+        <!-- Buscador -->
+        <div class="search-box">
+            <input 
+                type="text" 
+                placeholder="Buscar herramienta..."
+                [(ngModel)]="terminoBusqueda"
+            />
+            <span class="search-icon">🔍</span>
+        </div>
+        
+        <div class="herramientas-lista">
+            <!-- Estados de carga -->
+            <div *ngIf="cargando" class="empty-state">
+                <div class="empty-state-icon">⏳</div>
+                <p>Cargando herramientas...</p>
+            </div>
+
+            <!-- Lista de herramientas -->
+            <div 
+                *ngFor="let herramienta of filtrarHerramientas()" 
+                class="herramienta-item"
+                [class.active]="herramientaSeleccionada?.id === herramienta.id"
+                (click)="seleccionarHerramienta(herramienta)">
+                
+                <!-- Imagen de la herramienta -->
+                <div class="herramienta-imagen">
+                    <img 
+                        *ngIf="herramienta.foto" 
+                        [src]="getFotoUrl(herramienta.foto)" 
+                        [alt]="herramienta.nombre"
+                    />
+                    <div *ngIf="!herramienta.foto" class="imagen-placeholder">
+                        🔧
+                    </div>
+                </div>
+
+                <div class="herramienta-info">
+                    <div class="herramienta-header">
+                        <span class="herramienta-nombre">{{ herramienta.nombre }}</span>
+                        <span class="herramienta-badge">
+                            ID: {{ herramienta.id }}
+                        </span>
+                    </div>
+                    
+                    <div class="herramienta-datos">
+                        <div class="dato-row" *ngIf="herramienta.proveedor">
+                            <span class="dato-label">🏢 Proveedor:</span>
+                            <span class="dato-valor">{{ herramienta.proveedor.nombreEmpresa }}</span>
+                        </div>
+                        <div class="dato-row" *ngIf="herramienta.proveedor">
+                            <span class="dato-label">📞 Teléfono:</span>
+                            <span class="dato-valor">{{ herramienta.proveedor.numTelefono }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="botones-container">
+                        <button class="btn btn-editar" (click)="editarHerramienta(herramienta); $event.stopPropagation()">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn btn-eliminar" (click)="eliminarHerramienta(herramienta, $event)">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado vacío -->
+            <div *ngIf="!cargando && filtrarHerramientas().length === 0" class="empty-state">
+                <div class="empty-state-icon">🔧</div>
+                <h3>No hay herramientas registradas</h3>
+                <p>Comienza agregando tu primera herramienta</p>
+                <button class="btn-nuevo" (click)="abrirFormulario()">
+                    <span>➕</span> Agregar Herramienta
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Panel Derecho - Detalles de la Herramienta -->
+    <div class="right-panel">
+        <div class="detalle-container">
+            <div class="detalle-header">
+                <h3 *ngIf="!herramientaSeleccionada">🔧 Selecciona una herramienta</h3>
+                <h3 *ngIf="herramientaSeleccionada">
+                    🔧 {{ herramientaSeleccionada.nombre }}
+                </h3>
+            </div>
+
+            <!-- Estado vacío -->
+            <div *ngIf="!herramientaSeleccionada" class="empty-state">
+                <div class="empty-state-icon">🔧</div>
+                <p>Selecciona una herramienta de la lista para ver sus detalles</p>
+            </div>
+
+            <!-- Detalles de la herramienta seleccionada -->
+            <div *ngIf="herramientaSeleccionada" class="info-section">
+                <!-- Imagen grande -->
+                <div class="info-card imagen-card">
+                    <img 
+                        *ngIf="herramientaSeleccionada.foto" 
+                        [src]="getFotoUrl(herramientaSeleccionada.foto)" 
+                        [alt]="herramientaSeleccionada.nombre"
+                        class="imagen-detalle"
+                    />
+                    <div *ngIf="!herramientaSeleccionada.foto" class="imagen-placeholder-grande">
+                        🔧
+                    </div>
+                </div>
+
+                <!-- Información General -->
+                <div class="info-card">
+                    <div class="info-title">📋 Información General</div>
+                    <div class="info-content">
+                        <div class="dato-row">
+                            <span class="dato-label">Nombre:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.nombre }}</span>
+                        </div>
+                        <div class="dato-row">
+                            <span class="dato-label">ID de Herramienta:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.id }}</span>
+                        </div>
+                        <!-- Eliminado el campo idAlmacen ya que no existe en la interfaz -->
+                    </div>
+                </div>
+
+                <!-- Información del Proveedor -->
+                <div class="info-card" *ngIf="herramientaSeleccionada.proveedor">
+                    <div class="info-title">🏢 Información del Proveedor</div>
+                    <div class="info-content">
+                        <div class="dato-row" *ngIf="herramientaSeleccionada.proveedor.nombreEmpresa">
+                            <span class="dato-label">Empresa:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.proveedor.nombreEmpresa }}</span>
+                        </div>
+                        <div class="dato-row" *ngIf="herramientaSeleccionada.proveedor.nombreRepresentante">
+                            <span class="dato-label">Representante:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.proveedor.nombreRepresentante }}</span>
+                        </div>
+                        <div class="dato-row" *ngIf="herramientaSeleccionada.proveedor.numTelefono">
+                            <span class="dato-label">Teléfono:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.proveedor.numTelefono }}</span>
+                        </div>
+                        <div class="dato-row" *ngIf="herramientaSeleccionada.proveedor.materialProvee">
+                            <span class="dato-label">Material que Provee:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.proveedor.materialProvee }}</span>
+                        </div>
+                        <div class="dato-row" *ngIf="herramientaSeleccionada.proveedor.id">
+                            <span class="dato-label">ID Proveedor:</span>
+                            <span class="dato-valor">{{ herramientaSeleccionada.proveedor.id }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fotografía del Proveedor -->
+                <div class="info-card" *ngIf="herramientaSeleccionada.proveedor && herramientaSeleccionada.proveedor.fotografia">
+                    <div class="info-title">📸 Fotografía del Proveedor</div>
+                    <div class="info-content" style="text-align: center;">
+                        <img 
+                            [src]="'data:image/jpeg;base64,' + herramientaSeleccionada.proveedor.fotografia" 
+                            alt="Foto del proveedor"
+                            style="max-width: 200px; border-radius: 10px; border: 3px solid #fbbf24;"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nueva/Editar Herramienta -->
+<div class="modal-overlay" [class.active]="mostrarFormulario">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>{{ editando ? 'Editar Herramienta' : 'Nueva Herramienta' }}</h3>
+            <button class="btn-close" (click)="cerrarFormulario()">×</button>
+        </div>
+        <form (ngSubmit)="guardarHerramienta()">
+            <div class="form-group">
+                <label>Nombre de la Herramienta *</label>
+                <input 
+                    type="text" 
+                    [(ngModel)]="formHerramienta.nombre" 
+                    name="nombre" 
+                    required 
+                    placeholder="Ej: Extractor de miel"
+                    [disabled]="guardando"
+                />
+            </div>
+
+            <div class="form-group">
+                <label>Almacén *</label>
+                <select 
+                    [(ngModel)]="formHerramienta.idAlmacen" 
+                    name="idAlmacen" 
+                    required 
+                    [disabled]="cargandoAlmacenes || guardando"
+                >
+                    <option value="">Seleccione un almacén...</option>
+                    <option *ngFor="let almacen of almacenes" [value]="almacen.id">
+                        {{ almacen.numeroSeguimiento }} - {{ almacen.ubicacion }}
+                    </option>
+                </select>
+                <small *ngIf="cargandoAlmacenes" class="text-muted">Cargando almacenes...</small>
+            </div>
+
+            <div class="form-group">
+                <label>Proveedor *</label>
+                <select 
+                    [(ngModel)]="formHerramienta.idProveedor" 
+                    name="idProveedor" 
+                    required 
+                    [disabled]="cargandoProveedores || guardando"
+                >
+                    <option value="">Seleccione un proveedor...</option>
+                    <option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
+                        {{ proveedor.nombreEmpresa }}
+                    </option>
+                </select>
+                <small *ngIf="cargandoProveedores" class="text-muted">Cargando proveedores...</small>
+            </div>
+
+            <div class="form-group">
+                <label>Fotografía</label>
+                
+                <!-- Botón para seleccionar imagen solo si NO hay foto -->
+                <div class="file-input-container" *ngIf="!fotoPreview">
+                    <input 
+                        type="file" 
+                        id="foto"
+                        (change)="onFileSelected($event)" 
+                        accept="image/*"
+                        [disabled]="guardando"
+                    />
+                    <label for="foto" class="file-input-label">
+                        <span>📷</span>
+                        Seleccionar Imagen
+                    </label>
+                </div>
+
+                <!-- Preview de la imagen -->
+                <div class="image-preview" *ngIf="fotoPreview">
+                    <img [src]="fotoPreview" alt="Preview" />
+                    <button 
+                        type="button" 
+                        class="remove-image" 
+                        (click)="eliminarFoto()"
+                        title="Eliminar foto"
+                        [disabled]="guardando"
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button 
+                    type="button" 
+                    class="btn-modal btn-cancelar" 
+                    (click)="cerrarFormulario()"
+                    [disabled]="guardando"
+                >
+                    Cancelar
+                </button>
+                <button 
+                    type="submit" 
+                    class="btn-modal btn-guardar" 
+                    [disabled]="guardando"
+                >
+                    {{ guardando ? 'Guardando...' : 'Guardar' }}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>

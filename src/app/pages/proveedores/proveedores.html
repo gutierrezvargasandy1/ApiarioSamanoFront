@@ -1,74 +1,196 @@
 <div class="proveedores-container">
+  <!-- Header con título y acciones -->
   <div class="header">
     <h2>Gestión de Proveedores</h2>
     <div class="actions">
+      <!-- Búsqueda -->
       <div class="search-box">
-        <input type="text" placeholder="Buscar proveedor..." [(ngModel)]="terminoBusqueda" />
+        <input 
+          type="text" 
+          placeholder="Buscar proveedor..." 
+          [(ngModel)]="terminoBusqueda" 
+        />
         <span class="material-icons search-icon">search</span>
       </div>
+      
+      <!-- Botón nuevo proveedor -->
       <button class="btn add" (click)="abrirFormulario()">
-        <span class="material-icons">person_add</span> Nuevo Proveedor
+        <span class="material-icons">person_add</span> 
+        Nuevo Proveedor
       </button>
     </div>
   </div>
 
-  <table class="tabla">
-    <thead>
-      <tr>
-        <th>Fotografía</th>
-        <th>Nombre Empresa</th>
-        <th>Teléfono</th>
-        <th>Material que Provee</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let proveedor of filtrarProveedores()">
-        <td><img *ngIf="proveedor.fotografia" [src]="'data:image/png;base64,' + proveedor.fotografia" alt="Foto proveedor" /></td>
-        <td>{{ proveedor.nombreEmpresa }}</td>
-        <td>{{ proveedor.numTelefono }}</td>
-        <td>{{ proveedor.materialProvee }}</td>
-        <td>
-          <button class="btn edit" (click)="editarProveedor(proveedor)">
-            <span class="material-icons">edit</span>
-          </button>
-          <button class="btn delete" (click)="eliminarProveedor(proveedor)">
-            <span class="material-icons">delete</span>
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Tabla de proveedores -->
+  <div class="tabla-container">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Fotografía</th>
+          <th>Nombre Empresa</th>
+          <th>Teléfono</th>
+          <th>Material que Provee</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Lista de proveedores -->
+        <tr *ngFor="let proveedor of filtrarProveedores()" class="fade-in">
+          <td>
+            <!-- Imagen del proveedor -->
+            <img 
+              *ngIf="proveedor.fotografia" 
+              [src]="getFotoUrl(proveedor.fotografia)" 
+              alt="Foto de {{ proveedor.nombreEmpresa }}" 
+            />
+            <!-- Placeholder si no hay imagen -->
+            <div *ngIf="!proveedor.fotografia" class="no-imagen">
+              🏢
+            </div>
+          </td>
+          <td><strong>{{ proveedor.nombreEmpresa }}</strong></td>
+          <td>{{ proveedor.numTelefono }}</td>
+          <td>{{ proveedor.materialProvee }}</td>
+          <td>
+            <div class="tabla-acciones">
+              <!-- Botón editar -->
+              <button 
+                class="btn edit" 
+                (click)="editarProveedor(proveedor)"
+                title="Editar proveedor"
+              >
+                <span class="material-icons">edit</span>
+              </button>
+              
+              <!-- Botón eliminar -->
+              <button 
+                class="btn delete" 
+                (click)="eliminarProveedor(proveedor)"
+                title="Eliminar proveedor"
+              >
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
 
-  <!-- Modal -->
+        <!-- Estado vacío cuando no hay proveedores -->
+        <tr *ngIf="filtrarProveedores().length === 0">
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-state-icon">📦</div>
+              <h3>No hay proveedores registrados</h3>
+              <p>Comienza agregando tu primer proveedor</p>
+              <button class="btn add" (click)="abrirFormulario()">
+                <span class="material-icons">person_add</span>
+                Agregar Primer Proveedor
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal para agregar/editar proveedor -->
   <div class="modal" *ngIf="mostrarFormulario">
     <div class="modal-content">
-      <h3>{{ editando ? 'Editar Proveedor' : 'Agregar Proveedor' }}</h3>
+      <h3>{{ editando ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h3>
 
       <form (ngSubmit)="guardarProveedor()">
-        <label>Nombre Empresa:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.nombreEmpresa" name="nombre_empresa" required />
+        <!-- Nombre de la empresa -->
+        <div>
+          <label for="nombreEmpresa">Nombre de la Empresa *</label>
+          <input 
+            type="text" 
+            id="nombreEmpresa"
+            [(ngModel)]="proveedorSeleccionado.nombreEmpresa" 
+            name="nombre_empresa" 
+            placeholder="Ej: Maderas y Materiales S.A."
+            required 
+          />
+        </div>
 
-        <label>Teléfono:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.numTelefono" name="telefono" required />
+        <!-- Teléfono -->
+        <div>
+          <label for="telefono">Número de Teléfono *</label>
+          <input 
+            type="tel" 
+            id="telefono"
+            [(ngModel)]="proveedorSeleccionado.numTelefono" 
+            name="telefono" 
+            placeholder="Ej: 461-123-4567"
+            required 
+          />
+        </div>
 
-        <label>Material que Provee:</label>
-        <input type="text" [(ngModel)]="proveedorSeleccionado.materialProvee" name="material" required />
+        <!-- Material que provee -->
+        <div>
+          <label for="material">Material que Provee *</label>
+          <input 
+            type="text" 
+            id="material"
+            [(ngModel)]="proveedorSeleccionado.materialProvee" 
+            name="material" 
+            placeholder="Ej: Madera, Cemento, Herramientas"
+            required 
+          />
+        </div>
 
-        <label>Fotografía:</label>
-        <input type="file" (change)="onFileSelected($event)" />
+        <!-- Fotografía -->
+        <div>
+          <label>Fotografía de la Empresa</label>
+          
+          <!-- Mostrar botón de selección solo si NO hay imagen -->
+          <div class="file-input-container" *ngIf="!proveedorSeleccionado.fotografia">
+            <input 
+              type="file" 
+              id="foto"
+              (change)="onFileSelected($event)" 
+              accept="image/*"
+            />
+            <label for="foto" class="file-input-label">
+              <span class="material-icons">add_photo_alternate</span>
+              Seleccionar Imagen
+            </label>
+          </div>
 
+          <!-- Preview de la imagen -->
+          <div 
+            class="image-preview" 
+            *ngIf="proveedorSeleccionado.fotografia"
+          >
+            <img 
+              [src]="proveedorSeleccionado.fotografia" 
+              alt="Preview" 
+            />
+            <button 
+              type="button" 
+              class="remove-image" 
+              (click)="eliminarFoto()"
+              title="Eliminar foto"
+            >
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+        </div>
 
+        <!-- Acciones del modal -->
         <div class="modal-actions">
           <button class="btn save" type="submit">
-            <span class="material-icons">check</span> Guardar
+            <span class="material-icons">check</span> 
+            Guardar
           </button>
-          <button class="btn cancel" type="button" (click)="cerrarFormulario()">
-            <span class="material-icons">close</span> Cancelar
+          <button 
+            class="btn cancel" 
+            type="button" 
+            (click)="cerrarFormulario()"
+          >
+            <span class="material-icons">close</span> 
+            Cancelar
           </button>
         </div>
       </form>
     </div>
   </div>
 </div>
-
