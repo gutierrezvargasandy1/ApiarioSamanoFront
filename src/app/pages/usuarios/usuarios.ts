@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { UsuariosService, Usuario } from '../../services/usuariosService/usuarios-service';
+import { ToastService } from '../../services/toastService/toast-service';
 
 @Component({
   selector: 'app-usuarios',
@@ -13,9 +14,9 @@ export class Usuarios implements OnInit {
   terminoBusqueda: string = '';
   mostrarFormulario: boolean = false;
   editando: boolean = false;
-  mensaje: string = ''; // ✅ mensaje visual
-  cargando: boolean = false; // ✅ Propiedad agregada para loading state
-  
+  mensaje: string = '';
+  cargando: boolean = false;
+
   usuarioSeleccionado: Usuario = {
     nombre: '',
     apellidoPa: '',
@@ -25,23 +26,36 @@ export class Usuarios implements OnInit {
     rol: ''
   };
 
-  constructor(private usuariosService: UsuariosService) {}
+  constructor(
+    private usuariosService: UsuariosService,
+    private toastService: ToastService,
+    private ngZone: NgZone,
+    private cd: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.cargarUsuarios();
   }
 
   cargarUsuarios(): void {
-    this.cargando = true; // ✅ Activar loading
+    this.cargando = true;
+    this.cd.detectChanges();
+
     this.usuariosService.obtenerUsuarios().subscribe({
       next: (response) => {
-        this.usuarios = response.data || [];
-        console.log('Usuarios cargados:', this.usuarios);
-        this.cargando = false; // ✅ Desactivar loading
+        this.ngZone.run(() => {
+          this.usuarios = response.data || [];
+          console.log('Usuarios cargados:', this.usuarios);
+          this.cargando = false;
+          this.cd.detectChanges();
+        });
       },
       error: (error) => {
-        console.error('Error al obtener usuarios:', error);
-        this.cargando = false; // ✅ Desactivar loading en caso de error
+        this.ngZone.run(() => {
+          this.cargando = false;
+          this.toastService.error('Error', 'No se pudieron cargar los usuarios');
+          this.cd.detectChanges();
+        });
       }
     });
   }
@@ -59,69 +73,80 @@ export class Usuarios implements OnInit {
   }
 
   abrirFormulario(usuario?: Usuario): void {
-    this.mostrarFormulario = true;
-    if (usuario) {
-      this.editando = true;
-      this.usuarioSeleccionado = { ...usuario };
-    } else {
-      this.editando = false;
-      this.usuarioSeleccionado = {
-        nombre: '',
-        apellidoPa: '',
-        apellidoMa: '',
-        email: '',
-        contrasena: '',
-        rol: ''
-      };
-    }
+    this.ngZone.run(() => {
+      this.mostrarFormulario = true;
+      if (usuario) {
+        this.editando = true;
+        this.usuarioSeleccionado = { ...usuario };
+      } else {
+        this.editando = false;
+        this.usuarioSeleccionado = {
+          nombre: '',
+          apellidoPa: '',
+          apellidoMa: '',
+          email: '',
+          contrasena: '',
+          rol: ''
+        };
+      }
+      this.cd.detectChanges();
+    });
   }
 
   cerrarFormulario(): void {
-    this.mostrarFormulario = false;
-    this.editando = false;
-  }
-
-  mostrarMensaje(texto: string): void {
-    this.mensaje = texto;
-    setTimeout(() => (this.mensaje = ''), 3000); // Desaparece en 3s
+    this.ngZone.run(() => {
+      this.mostrarFormulario = false;
+      this.editando = false;
+      this.cd.detectChanges();
+    });
   }
 
   guardarUsuario(): void {
-    this.cargando = true; // ✅ Activar loading al guardar
-    
+    this.cargando = true;
+    this.cd.detectChanges();
+
     if (this.editando) {
-      // ✅ Actualizar usuario
       this.usuariosService.actualizarUsuarioPorEmail(
         this.usuarioSeleccionado.email,
         this.usuarioSeleccionado
       ).subscribe({
         next: (res) => {
-          // Actualiza localmente sin recargar todo
-          const index = this.usuarios.findIndex(u => u.email === this.usuarioSeleccionado.email);
-          if (index !== -1) this.usuarios[index] = { ...this.usuarioSeleccionado };
-          this.cerrarFormulario();
-          this.cargando = false; // ✅ Desactivar loading
-          this.mostrarMensaje('✅ Usuario actualizado correctamente');
+          this.ngZone.run(() => {
+            const index = this.usuarios.findIndex(u => u.email === this.usuarioSeleccionado.email);
+            if (index !== -1) this.usuarios[index] = { ...this.usuarioSeleccionado };
+            this.cerrarFormulario();
+            this.cargando = false;
+            this.toastService.success('Éxito', 'Usuario actualizado correctamente');
+            this.cd.detectChanges();
+          });
         },
         error: (err) => {
-          console.error('Error al actualizar usuario:', err);
-          this.cargando = false; // ✅ Desactivar loading en caso de error
-          this.mostrarMensaje('❌ Error al actualizar usuario');
+          this.ngZone.run(() => {
+            console.error('Error al actualizar usuario:', err);
+            this.cargando = false;
+            this.toastService.error('Error', 'No se pudo actualizar el usuario');
+            this.cd.detectChanges();
+          });
         }
       });
     } else {
-      // ✅ Crear usuario nuevo
       this.usuariosService.crearUsuario(this.usuarioSeleccionado).subscribe({
         next: (respuesta) => {
-          this.usuarios.push(this.usuarioSeleccionado); 
-          this.cerrarFormulario();
-          this.cargando = false; // ✅ Desactivar loading
-          this.mostrarMensaje('✅ Usuario agregado correctamente');
+          this.ngZone.run(() => {
+            this.usuarios.push({ ...this.usuarioSeleccionado });
+            this.cerrarFormulario();
+            this.cargando = false;
+            this.toastService.success('Éxito', 'Usuario creado correctamente');
+            this.cd.detectChanges();
+          });
         },
         error: (err) => {
-          console.error('Error al crear usuario:', err);
-          this.cargando = false; // ✅ Desactivar loading en caso de error
-          this.mostrarMensaje('❌ Error al crear usuario');
+          this.ngZone.run(() => {
+            console.error('Error al crear usuario:', err);
+            this.cargando = false;
+            this.toastService.error('Error', 'No se pudo crear el usuario');
+            this.cd.detectChanges();
+          });
         }
       });
     }
@@ -133,34 +158,47 @@ export class Usuarios implements OnInit {
 
   eliminarUsuario(usuario: Usuario): void {
     if (confirm(`¿Seguro que deseas eliminar a ${usuario.nombre}?`)) {
-      this.cargando = true; // ✅ Activar loading al eliminar
-      
+      this.cargando = true;
+      this.cd.detectChanges();
+
       this.usuariosService.obtenerUsuarioPorEmail(usuario.email).subscribe({
         next: (res) => {
-          const id = res.data?.id;
-          if (id) {
-            this.usuariosService.eliminarUsuario(id).subscribe({
-              next: () => {
-                this.usuarios = this.usuarios.filter(u => u.email !== usuario.email);
-                this.cargando = false; // ✅ Desactivar loading
-                this.mostrarMensaje('🗑️ Usuario eliminado correctamente');
-              },
-              error: (err) => {
-                console.error('Error al eliminar usuario:', err);
-                this.cargando = false; // ✅ Desactivar loading en caso de error
-                this.mostrarMensaje('❌ Error al eliminar usuario');
-              }
-            });
-          } else {
-            console.error('⚠️ No se encontró el ID del usuario para eliminar.');
-            this.cargando = false; // ✅ Desactivar loading
-            this.mostrarMensaje('⚠️ No se encontró el usuario');
-          }
+          this.ngZone.run(() => {
+            const id = res.data?.id;
+            if (id) {
+              this.usuariosService.eliminarUsuario(id).subscribe({
+                next: () => {
+                  this.ngZone.run(() => {
+                    this.usuarios = this.usuarios.filter(u => u.email !== usuario.email);
+                    this.cargando = false;
+                    this.toastService.success('Éxito', 'Usuario eliminado correctamente');
+                    this.cd.detectChanges();
+                  });
+                },
+                error: (err) => {
+                  this.ngZone.run(() => {
+                    console.error('Error al eliminar usuario:', err);
+                    this.cargando = false;
+                    this.toastService.error('Error', 'No se pudo eliminar el usuario');
+                    this.cd.detectChanges();
+                  });
+                }
+              });
+            } else {
+              console.error('⚠️ No se encontró el ID del usuario para eliminar.');
+              this.cargando = false;
+              this.toastService.warning('Advertencia', 'No se encontró el usuario');
+              this.cd.detectChanges();
+            }
+          });
         },
         error: (err) => {
-          console.error('Error al buscar usuario por email:', err);
-          this.cargando = false; // ✅ Desactivar loading en caso de error
-          this.mostrarMensaje('❌ Error al buscar usuario');
+          this.ngZone.run(() => {
+            console.error('Error al buscar usuario por email:', err);
+            this.cargando = false;
+            this.toastService.error('Error', 'Error al buscar usuario');
+            this.cd.detectChanges();
+          });
         }
       });
     }
