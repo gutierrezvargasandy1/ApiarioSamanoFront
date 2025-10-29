@@ -138,21 +138,5 @@ export class MateriasPrimasService {
     );
   }
 
-  // 🔄 Método para actualizar materia prima (si lo necesitas)
-  actualizar(id: number, request: MateriasPrimasRequest): Observable<CodigoResponse<MateriasPrimasResponse>> {
-    return this.http.put<CodigoResponse<MateriasPrimasResponse>>(
-      `${this.apiUrl}/${id}`,
-      request,
-      { headers: this.getHeaders() }
-    );
-  }
 
-  // 📊 Método para actualizar cantidad (si lo necesitas)
-  actualizarCantidad(id: number, nuevaCantidad: number): Observable<CodigoResponse<MateriasPrimasResponse>> {
-    return this.http.patch<CodigoResponse<MateriasPrimasResponse>>(
-      `${this.apiUrl}/${id}/cantidad`,
-      { cantidad: nuevaCantidad },
-      { headers: this.getHeaders() }
-    );
-  }
 }

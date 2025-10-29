@@ -27,6 +27,15 @@ export interface MedicamentosResponse {
   idProveedor: number;
 }
 
+export interface Medicamentos {
+  id: number;
+  nombre: string;
+  cantidad: number; // Nota: number (BigDecimal en Java se convierte a number)
+  descripcion: string;
+  foto: string; // o ArrayBuffer si manejas bytes
+  idProveedor: number;
+}
+
 export interface MedicamentosConProveedorResponse {
   id: number;
   nombre: string;
@@ -122,21 +131,6 @@ export class MedicamentosService {
     );
   }
 
-  // 🔄 Método para actualizar medicamento (si lo necesitas)
-  actualizar(id: number, request: MedicamentosRequest): Observable<CodigoResponse<MedicamentosResponse>> {
-    return this.http.put<CodigoResponse<MedicamentosResponse>>(
-      `${this.apiUrl}/${id}`,
-      request,
-      { headers: this.getHeaders() }
-    );
-  }
+ 
 
-  // 🔄 Método alternativo usando PATCH para actualización parcial
-  actualizarParcial(id: number, datosParciales: Partial<MedicamentosRequest>): Observable<CodigoResponse<MedicamentosResponse>> {
-    return this.http.patch<CodigoResponse<MedicamentosResponse>>(
-      `${this.apiUrl}/${id}`,
-      datosParciales,
-      { headers: this.getHeaders() }
-    );
-  }
 }

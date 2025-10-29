@@ -9,6 +9,7 @@
           type="text" 
           placeholder="Buscar proveedor..." 
           [(ngModel)]="terminoBusqueda" 
+          (input)="onBuscarChange()"
         />
         <span class="material-icons search-icon">search</span>
       </div>
@@ -28,27 +29,40 @@
         <tr>
           <th>Fotografía</th>
           <th>Nombre Empresa</th>
+          <th>Nombre Del Representante</th>
           <th>Teléfono</th>
           <th>Material que Provee</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
+        <!-- Estado de carga -->
+        <tr *ngIf="cargando">
+          <td colspan="6">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Cargando proveedores...</p>
+            </div>
+          </td>
+        </tr>
+
         <!-- Lista de proveedores -->
-        <tr *ngFor="let proveedor of filtrarProveedores()" class="fade-in">
+        <tr *ngFor="let proveedor of filtrarProveedores(); trackBy: trackByProveedorId" class="fade-in">
           <td>
             <!-- Imagen del proveedor -->
             <img 
               *ngIf="proveedor.fotografia" 
               [src]="getFotoUrl(proveedor.fotografia)" 
               alt="Foto de {{ proveedor.nombreEmpresa }}" 
+              class="foto-tabla"
             />
             <!-- Placeholder si no hay imagen -->
             <div *ngIf="!proveedor.fotografia" class="no-imagen">
-              🏢
+              {{ getPlaceholderIcon(proveedor.materialProvee) }}
             </div>
           </td>
           <td><strong>{{ proveedor.nombreEmpresa }}</strong></td>
+          <td>{{ proveedor.nombreRepresentante }}</td>
           <td>{{ proveedor.numTelefono }}</td>
           <td>{{ proveedor.materialProvee }}</td>
           <td>
@@ -65,7 +79,7 @@
               <!-- Botón eliminar -->
               <button 
                 class="btn delete" 
-                (click)="eliminarProveedor(proveedor)"
+                (click)="abrirModalConfirmacion(proveedor)"
                 title="Eliminar proveedor"
               >
                 <span class="material-icons">delete</span>
@@ -75,8 +89,8 @@
         </tr>
 
         <!-- Estado vacío cuando no hay proveedores -->
-        <tr *ngIf="filtrarProveedores().length === 0">
-          <td colspan="5">
+        <tr *ngIf="!cargando && filtrarProveedores().length === 0">
+          <td colspan="6">
             <div class="empty-state">
               <div class="empty-state-icon">📦</div>
               <h3>No hay proveedores registrados</h3>
@@ -105,8 +119,21 @@
             type="text" 
             id="nombreEmpresa"
             [(ngModel)]="proveedorSeleccionado.nombreEmpresa" 
-            name="nombre_empresa" 
+            name="nombreEmpresa" 
             placeholder="Ej: Maderas y Materiales S.A."
+            required 
+          />
+        </div>
+
+        <!-- Nombre del Representante -->
+        <div>
+          <label for="nombreRepresentante">Nombre del Representante *</label>
+          <input 
+            type="text" 
+            id="nombreRepresentante"
+            [(ngModel)]="proveedorSeleccionado.nombreRepresentante" 
+            name="nombreRepresentante" 
+            placeholder="Ej: Juan Pérez García"
             required 
           />
         </div>
@@ -118,7 +145,7 @@
             type="tel" 
             id="telefono"
             [(ngModel)]="proveedorSeleccionado.numTelefono" 
-            name="telefono" 
+            name="numTelefono" 
             placeholder="Ej: 461-123-4567"
             required 
           />
@@ -131,7 +158,7 @@
             type="text" 
             id="material"
             [(ngModel)]="proveedorSeleccionado.materialProvee" 
-            name="material" 
+            name="materialProvee" 
             placeholder="Ej: Madera, Cemento, Herramientas"
             required 
           />
@@ -141,8 +168,8 @@
         <div>
           <label>Fotografía de la Empresa</label>
           
-          <!-- Mostrar botón de selección solo si NO hay imagen -->
-          <div class="file-input-container" *ngIf="!proveedorSeleccionado.fotografia">
+          <!-- Mostrar botón de selección solo si NO hay imagen preview -->
+          <div class="file-input-container" *ngIf="!imagenPreview">
             <input 
               type="file" 
               id="foto"
@@ -156,41 +183,98 @@
           </div>
 
           <!-- Preview de la imagen -->
-          <div 
-            class="image-preview" 
-            *ngIf="proveedorSeleccionado.fotografia"
-          >
+          <div *ngIf="imagenPreview" class="foto-preview">
             <img 
-              [src]="proveedorSeleccionado.fotografia" 
+              [src]="imagenPreview" 
               alt="Preview" 
+              class="foto-preview-img"
             />
             <button 
               type="button" 
-              class="remove-image" 
+              class="btn-eliminar-foto"
               (click)="eliminarFoto()"
-              title="Eliminar foto"
             >
-              <span class="material-icons">close</span>
+              <span class="material-icons">delete</span>
             </button>
+          </div>
+
+          <!-- Información sobre la imagen -->
+          <div class="file-info" *ngIf="archivoSeleccionado">
+            <small>Archivo seleccionado: {{ archivoSeleccionado.name }}</small>
+            <small>Tamaño: {{ (archivoSeleccionado.size / 1024 / 1024).toFixed(2) }} MB</small>
           </div>
         </div>
 
         <!-- Acciones del modal -->
         <div class="modal-actions">
-          <button class="btn save" type="submit">
+          <button class="btn save" type="submit" [disabled]="guardando">
             <span class="material-icons">check</span> 
-            Guardar
+            {{ guardando ? 'Guardando...' : 'Guardar' }}
           </button>
           <button 
             class="btn cancel" 
             type="button" 
             (click)="cerrarFormulario()"
+            [disabled]="guardando"
           >
             <span class="material-icons">close</span> 
             Cancelar
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para eliminar proveedor -->
+  <div class="modal" *ngIf="mostrarModalConfirmacion">
+    <div class="modal-content confirmacion-modal">
+      <div class="confirmacion-icon">
+        <span class="material-icons">warning</span>
+      </div>
+      
+      <h3>¿Estás seguro de eliminar este proveedor?</h3>
+      
+      <div class="confirmacion-info">
+        <div class="proveedor-info">
+          <strong>{{ proveedorAEliminar?.nombreEmpresa }}</strong>
+        </div>
+        <div class="proveedor-representante">
+          Representante: {{ proveedorAEliminar?.nombreRepresentante }}
+        </div>
+        <div class="proveedor-telefono">
+          Teléfono: {{ proveedorAEliminar?.numTelefono }}
+        </div>
+        <div class="proveedor-material">
+          Material: {{ proveedorAEliminar?.materialProvee }}
+        </div>
+      </div>
+
+      <div class="advertencia">
+        <span class="material-icons">info</span>
+        <p>Esta acción no se puede deshacer. El proveedor será eliminado permanentemente del sistema.</p>
+      </div>
+
+      <div class="modal-actions confirmacion-actions">
+        <button 
+          class="btn cancel" 
+          type="button" 
+          (click)="cerrarModalConfirmacion()"
+          [disabled]="eliminando"
+        >
+          <span class="material-icons">close</span> 
+          Cancelar
+        </button>
+        <button 
+          class="btn delete-confirm" 
+          type="button" 
+          (click)="confirmarEliminacion()"
+          [disabled]="eliminando"
+        >
+          <span class="material-icons" *ngIf="!eliminando">delete</span>
+          <span class="spinner-small" *ngIf="eliminando"></span>
+          {{ eliminando ? 'Eliminando...' : 'Eliminar' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

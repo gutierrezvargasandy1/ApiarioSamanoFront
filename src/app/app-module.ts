@@ -14,7 +14,6 @@ import { Apiarios } from './pages/apiarios/apiarios';
 import { HttpClientModule, provideHttpClient, withFetch } from '@angular/common/http'; // ✅ AGREGAR withFetch
 import { Almacenes } from './pages/almacenes/almacenes';
 import { Usuarios } from './pages/usuarios/usuarios';
-import { HistorialMedico } from './pages/historial-medico/historial-medico';
 import { Herramientas } from './pages/herramientas/herramientas';
 import { MateriasPrimas } from './pages/materias-primas/materias-primas';
 import { Proveedores } from './pages/proveedores/proveedores';
@@ -24,6 +23,7 @@ import { CambioDeContrasena } from './auth/cambio-de-contrasena/cambio-de-contra
 import { CambioDeContrasenaTemporal } from './auth/cambio-de-contrasena-temporal/cambio-de-contrasena-temporal';
 import { Produccion } from './pages/produccion/produccion/produccion';
 import { Toast } from './core/toast/toast';
+import { MedicamentosComponent } from './pages/medicamentos-component/medicamentos-component';
 
 @NgModule({
   declarations: [
@@ -35,7 +35,6 @@ import { Toast } from './core/toast/toast';
     Apiarios,
     Almacenes,
     Usuarios,
-    HistorialMedico,
     Herramientas,
     MateriasPrimas,
     Proveedores,
@@ -45,6 +44,7 @@ import { Toast } from './core/toast/toast';
     CambioDeContrasenaTemporal,
     Produccion,
     Toast,
+    MedicamentosComponent,
   ],
   imports: [
     BrowserModule,

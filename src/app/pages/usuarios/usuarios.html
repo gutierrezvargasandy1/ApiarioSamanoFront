@@ -76,7 +76,7 @@
               <!-- Botón eliminar -->
               <button 
                 class="btn delete" 
-                (click)="eliminarUsuario(usuario)"
+                (click)="abrirModalConfirmacion(usuario)"
                 title="Eliminar usuario"
               >
                 <span class="material-icons">delete</span>
@@ -196,3 +196,53 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de confirmación para eliminar usuario -->
+  <div class="modal" *ngIf="mostrarModalConfirmacion">
+    <div class="modal-content confirmacion-modal">
+      <div class="confirmacion-icon">
+        <span class="material-icons">warning</span>
+      </div>
+      
+      <h3>¿Estás seguro de eliminar este usuario?</h3>
+      
+      <div class="confirmacion-info">
+        <div class="usuario-info">
+          <strong>{{ usuarioAEliminar?.nombre }} {{ usuarioAEliminar?.apellidoPa }} {{ usuarioAEliminar?.apellidoMa }}</strong>
+        </div>
+        <div class="usuario-email">{{ usuarioAEliminar?.email }}</div>
+        <div class="usuario-rol">
+          <span class="rol-badge" [class]="'rol-' + usuarioAEliminar?.rol?.toLowerCase()">
+            {{ usuarioAEliminar?.rol }}
+          </span>
+        </div>
+      </div>
+
+      <div class="advertencia">
+        <span class="material-icons">info</span>
+        <p>Esta acción no se puede deshacer. El usuario será eliminado permanentemente del sistema.</p>
+      </div>
+
+      <div class="modal-actions confirmacion-actions">
+        <button 
+          class="btn cancel" 
+          type="button" 
+          (click)="cerrarModalConfirmacion()"
+          [disabled]="cargando"
+        >
+          <span class="material-icons">close</span> 
+          Cancelar
+        </button>
+        <button 
+          class="btn delete-confirm" 
+          type="button" 
+          (click)="confirmarEliminacion()"
+          [disabled]="cargando"
+        >
+          <span class="material-icons" *ngIf="!cargando"></span>
+          <span class="spinner-small" *ngIf="cargando"></span>
+          {{ cargando ? 'Eliminando...' : 'Eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>

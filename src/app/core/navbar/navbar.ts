@@ -60,5 +60,5 @@ export class Navbar implements OnInit, OnDestroy {
   goToMateriasPrimas() { this.router.navigate(['/materias-primas']); }
   goToProveedores() { this.router.navigate(['/proveedores']); }
   goToUsuarios() { this.router.navigate(['/usuarios']); }
-  goToHistorialMedico() { this.router.navigate(['/historial-medico']); }
+  goToHistorialMedico() { this.router.navigate(['/medicamentos']); }
 }

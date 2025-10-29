@@ -6,6 +6,7 @@ export interface Proveedor {
   id?: number;
   nombreEmpresa: string;
   numTelefono: string;
+  nombreRepresentante : string;
   materialProvee: string;
   fotografia?: string; // Base64 string
 }
@@ -15,15 +16,15 @@ export interface ProveedorRequest {
   nombreEmpresa: string;
   numTelefono: string;
   materialProvee: string;
-  fotografia?: File | string; // File para enviar, string para Base64 existente
+  fotografia?: string; // Solo Base64 como string
+  nombreRepresentante?: string; // Agregado según tu DTO
 }
 
 interface ApiResponse<T> {
-  codigo: number;
-  descripcion: string;
+  statusCode: number;        
+  message: string;          
   data: T;
-  mensaje: string | null;
-  timestamp: string;
+ 
 }
 
 @Injectable({
@@ -66,20 +67,44 @@ export class ProveedoresService {
       .pipe(map(res => res.data));
   }
 
-  // Crear un proveedor con imagen
+  // Crear un proveedor - ENVIANDO COMO JSON
   crearProveedor(proveedor: ProveedorRequest): Observable<Proveedor> {
-    const formData = this.createFormData(proveedor);
-    return this.http.post<ApiResponse<Proveedor>>(this.baseUrl, formData, { 
-      headers: this.getHeaders() // No Content-Type, se establece automáticamente
-    }).pipe(map(res => res.data));
+    // Preparar el objeto para enviar
+    const proveedorParaEnviar = {
+      nombreEmpresa: proveedor.nombreEmpresa,
+      numTelefono: proveedor.numTelefono,
+      materialProvee: proveedor.materialProvee,
+      fotografia: proveedor.fotografia || null, // Enviar null si no hay imagen
+      nombreReprecentante: proveedor.nombreRepresentante || null // Agregar si existe
+    };
+
+    console.log('Enviando proveedor como JSON:', proveedorParaEnviar);
+
+    return this.http.post<ApiResponse<Proveedor>>(
+      this.baseUrl, 
+      proveedorParaEnviar, 
+      { headers: this.getJsonHeaders() }
+    ).pipe(map(res => res.data));
   }
 
-  // Actualizar un proveedor con imagen
+  // Actualizar un proveedor - ENVIANDO COMO JSON
   actualizarProveedor(id: number, proveedor: ProveedorRequest): Observable<Proveedor> {
-    const formData = this.createFormData(proveedor);
-    return this.http.put<ApiResponse<Proveedor>>(`${this.baseUrl}/${id}`, formData, { 
-      headers: this.getHeaders() // No Content-Type, se establece automáticamente
-    }).pipe(map(res => res.data));
+    // Preparar el objeto para enviar
+    const proveedorParaEnviar = {
+      nombreEmpresa: proveedor.nombreEmpresa,
+      numTelefono: proveedor.numTelefono,
+      materialProvee: proveedor.materialProvee,
+      fotografia: proveedor.fotografia || null, // Enviar null si no hay imagen
+      nombreReprecentante: proveedor.nombreRepresentante || null // Agregar si existe
+    };
+
+    console.log('Actualizando proveedor como JSON:', proveedorParaEnviar);
+
+    return this.http.put<ApiResponse<Proveedor>>(
+      `${this.baseUrl}/${id}`, 
+      proveedorParaEnviar, 
+      { headers: this.getJsonHeaders() }
+    ).pipe(map(res => res.data));
   }
 
   // Eliminar un proveedor
@@ -88,51 +113,29 @@ export class ProveedoresService {
       .pipe(map(() => undefined));
   }
 
-  // Método privado para crear FormData
-  private createFormData(proveedor: ProveedorRequest): FormData {
-    const formData = new FormData();
+  // Método auxiliar para limpiar Base64 (remover prefijo data:image/...)
+  public limpiarBase64(base64ConPrefijo: string): string {
+    if (!base64ConPrefijo) return '';
     
-    // Agregar campos de texto
-    formData.append('nombreEmpresa', proveedor.nombreEmpresa);
-    formData.append('numTelefono', proveedor.numTelefono || '');
-    formData.append('materialProvee', proveedor.materialProvee || '');
-
-    // Agregar archivo si es un File
-    if (proveedor.fotografia instanceof File) {
-      formData.append('fotografia', proveedor.fotografia);
+    // Si ya es Base64 puro, retornar tal cual
+    if (!base64ConPrefijo.startsWith('data:')) {
+      return base64ConPrefijo;
     }
-    // Si es string Base64 (de una imagen existente o preview), convertirlo a File
-    else if (typeof proveedor.fotografia === 'string' && proveedor.fotografia.startsWith('data:image')) {
-      const file = this.base64ToFile(proveedor.fotografia, 'fotografia.jpg');
-      formData.append('fotografia', file);
-    }
-    // Si es string pero no Base64 (probablemente vacío o undefined)
-    else if (proveedor.fotografia === '' || proveedor.fotografia === undefined) {
-      // No agregamos el campo fotografia, el backend lo manejará como null
-    }
-
-    return formData;
+    
+    // Remover el prefijo "data:image/...;base64,"
+    return base64ConPrefijo.split(',')[1] || base64ConPrefijo;
   }
 
-  // Convertir Base64 a File
-  private base64ToFile(base64: string, filename: string): File {
-    const arr = base64.split(',');
-    const mime = arr[0].match(/:(.*?);/)![1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
+  // Método auxiliar para agregar prefijo Base64 para mostrar en frontend
+  public agregarPrefijoBase64(base64Puro: string, mimeType: string = 'image/jpeg'): string {
+    if (!base64Puro) return '';
     
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+    // Si ya tiene prefijo, retornar tal cual
+    if (base64Puro.startsWith('data:')) {
+      return base64Puro;
     }
     
-    return new File([u8arr], filename, { type: mime });
-  }
-
-  // Método opcional para crear proveedor sin imagen (si necesitas)
-  crearProveedorSinImagen(proveedor: Omit<ProveedorRequest, 'fotografia'>): Observable<Proveedor> {
-    return this.http.post<ApiResponse<Proveedor>>(this.baseUrl, proveedor, { 
-      headers: this.getJsonHeaders() 
-    }).pipe(map(res => res.data));
+    // Agregar prefijo para mostrar en img src
+    return `data:${mimeType};base64,${base64Puro}`;
   }
 }

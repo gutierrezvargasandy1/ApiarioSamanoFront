@@ -634,3 +634,53 @@ body {
         max-height: 400px;
     }
 }
+
+/* ==================== SELECT MEJORADO ==================== */
+.form-group select {
+    appearance: none;
+    background: #fff8e1;
+    border: 2px solid #fcd34d;
+    border-radius: 10px;
+    padding: 12px 40px 12px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Icono personalizado ▼ */
+.form-group {
+    position: relative;
+}
+
+.form-group select::after {
+    content: "▼";
+    position: absolute;
+    right: 15px;
+    top: 40px;
+    pointer-events: none;
+}
+
+/* Hover y focus más vistoso */
+.form-group select:hover {
+    border-color: #f59e0b;
+}
+
+.form-group select:focus {
+    border-color: #fbbf24;
+    background: #fff3c4;
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.22);
+}
+
+/* Para estados cargando/disabled */
+.form-group select:disabled {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+}
+
+/* Opciones más estilizadas */
+.form-group select option {
+    padding: 10px;
+    background: #fff;
+    color: #374151;
+}

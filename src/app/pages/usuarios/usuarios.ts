@@ -1,6 +1,7 @@
 import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { UsuariosService, Usuario } from '../../services/usuariosService/usuarios-service';
 import { ToastService } from '../../services/toastService/toast-service';
+import { AudioService } from '../../services/Audio/audio-service';
 
 @Component({
   selector: 'app-usuarios',
@@ -18,6 +19,7 @@ export class Usuarios implements OnInit {
   cargando: boolean = false;
 
   usuarioSeleccionado: Usuario = {
+    id:0,
     nombre: '',
     apellidoPa: '',
     apellidoMa: '',
@@ -28,6 +30,7 @@ export class Usuarios implements OnInit {
 
   constructor(
     private usuariosService: UsuariosService,
+    private audioService : AudioService,
     private toastService: ToastService,
     private ngZone: NgZone,
     private cd: ChangeDetectorRef
@@ -100,107 +103,185 @@ export class Usuarios implements OnInit {
       this.cd.detectChanges();
     });
   }
+guardarUsuario(): void {
+  this.cargando = true;
+  this.cd.detectChanges();
 
-  guardarUsuario(): void {
-    this.cargando = true;
+  if (this.editando) {
+    this.actualizarUsuario();
+  } else {
+    this.crearUsuario();
+  }
+}
+
+actualizarUsuario(): void {
+  // Verificar que tenemos el email para actualizar
+  if (!this.usuarioSeleccionado.email) {
+    console.error('Error: No se puede actualizar sin email');
+    this.toastService.error('Error', 'No se puede identificar el usuario');
+    this.cargando = false;
     this.cd.detectChanges();
+    return;
+  }
 
-    if (this.editando) {
-      this.usuariosService.actualizarUsuarioPorEmail(
-        this.usuarioSeleccionado.email,
-        this.usuarioSeleccionado
-      ).subscribe({
-        next: (res) => {
-          this.ngZone.run(() => {
-            const index = this.usuarios.findIndex(u => u.email === this.usuarioSeleccionado.email);
-            if (index !== -1) this.usuarios[index] = { ...this.usuarioSeleccionado };
-            this.cerrarFormulario();
-            this.cargando = false;
-            this.toastService.success('Éxito', 'Usuario actualizado correctamente');
-            this.cd.detectChanges();
-          });
-        },
-        error: (err) => {
-          this.ngZone.run(() => {
-            console.error('Error al actualizar usuario:', err);
-            this.cargando = false;
-            this.toastService.error('Error', 'No se pudo actualizar el usuario');
-            this.cd.detectChanges();
-          });
+  this.usuariosService.actualizarUsuarioPorEmail(
+    this.usuarioSeleccionado.email,
+    this.usuarioSeleccionado
+  ).subscribe({
+    next: (res) => {
+      this.ngZone.run(() => {
+        const index = this.usuarios.findIndex(u => u.email === this.usuarioSeleccionado.email);
+        if (index !== -1) {
+          // Usar los datos actualizados del servidor si están disponibles
+          this.usuarios[index] = { ...(res.data || this.usuarioSeleccionado) };
         }
+        this.cerrarFormulario();
+        this.cargando = false;
+        this.toastService.success('Éxito', 'Usuario actualizado correctamente');
+        this.cd.detectChanges();
       });
-    } else {
-      this.usuariosService.crearUsuario(this.usuarioSeleccionado).subscribe({
-        next: (respuesta) => {
-          this.ngZone.run(() => {
-            this.usuarios.push({ ...this.usuarioSeleccionado });
-            this.cerrarFormulario();
-            this.cargando = false;
-            this.toastService.success('Éxito', 'Usuario creado correctamente');
-            this.cd.detectChanges();
-          });
-        },
-        error: (err) => {
-          this.ngZone.run(() => {
-            console.error('Error al crear usuario:', err);
-            this.cargando = false;
-            this.toastService.error('Error', 'No se pudo crear el usuario');
-            this.cd.detectChanges();
-          });
+    },
+    error: (err) => {
+      this.ngZone.run(() => {
+        console.error('Error completo al actualizar usuario:', err);
+        this.cargando = false;
+        let mensajeError = 'No se pudo actualizar el usuario';
+        
+        // Mensajes más específicos según el error
+        if (err.status === 404) {
+          mensajeError = 'Usuario no encontrado';
+        } else if (err.status === 400) {
+          mensajeError = 'Datos inválidos para la actualización';
+        } else if (err.status === 500) {
+          mensajeError = 'Error interno del servidor';
+        } else if (err.status === 0) {
+          mensajeError = 'Error de conexión con el servidor';
         }
+        
+        this.toastService.error('Error', mensajeError);
+        this.cd.detectChanges();
       });
     }
-  }
+  });
+}
+
+crearUsuario(): void {
+  this.usuariosService.crearUsuario(this.usuarioSeleccionado).subscribe({
+    next: (respuesta) => {
+      this.ngZone.run(() => {
+        // Usar los datos del servidor si están disponibles, o los locales
+        const nuevoUsuario = { ...(respuesta.data || this.usuarioSeleccionado) };
+        this.usuarios.push(nuevoUsuario);
+        this.cerrarFormulario();
+        this.cargando = false;
+        this.toastService.success('Éxito', 'Usuario creado correctamente');
+        this.cd.detectChanges();
+      });
+    },
+    error: (err) => {
+      this.ngZone.run(() => {
+        console.error('Error completo al crear usuario:', err);
+        this.cargando = false;
+        let mensajeError = 'No se pudo crear el usuario';
+        
+        // Mensajes más específicos según el error
+        if (err.status === 409) {
+          mensajeError = 'El usuario ya existe';
+        } else if (err.status === 400) {
+          mensajeError = 'Datos inválidos para crear el usuario';
+        } else if (err.status === 500) {
+          mensajeError = 'Error interno del servidor';
+        } else if (err.status === 0) {
+          mensajeError = 'Error de conexión con el servidor';
+        }
+        
+        this.toastService.error('Error', mensajeError);
+        this.cd.detectChanges();
+      });
+    }
+  });
+}
 
   editarUsuario(usuario: Usuario): void {
     this.abrirFormulario(usuario);
   }
 
   eliminarUsuario(usuario: Usuario): void {
-    if (confirm(`¿Seguro que deseas eliminar a ${usuario.nombre}?`)) {
-      this.cargando = true;
-      this.cd.detectChanges();
+  this.cargando = true;
+  this.cd.detectChanges();
 
-      this.usuariosService.obtenerUsuarioPorEmail(usuario.email).subscribe({
-        next: (res) => {
-          this.ngZone.run(() => {
-            const id = res.data?.id;
-            if (id) {
-              this.usuariosService.eliminarUsuario(id).subscribe({
-                next: () => {
-                  this.ngZone.run(() => {
-                    this.usuarios = this.usuarios.filter(u => u.email !== usuario.email);
-                    this.cargando = false;
-                    this.toastService.success('Éxito', 'Usuario eliminado correctamente');
-                    this.cd.detectChanges();
-                  });
-                },
-                error: (err) => {
-                  this.ngZone.run(() => {
-                    console.error('Error al eliminar usuario:', err);
-                    this.cargando = false;
-                    this.toastService.error('Error', 'No se pudo eliminar el usuario');
-                    this.cd.detectChanges();
-                  });
-                }
+  this.usuariosService.obtenerUsuarioPorEmail(usuario.email).subscribe({
+    next: (res) => {
+      this.ngZone.run(() => {
+        const id = res.data?.id;
+        if (id) {
+          this.usuariosService.eliminarUsuario(id).subscribe({
+            next: () => {
+              this.ngZone.run(() => {
+                this.usuarios = this.usuarios.filter(u => u.email !== usuario.email);
+                this.cargando = false;
+                this.toastService.success('Éxito', 'Usuario eliminado correctamente');
+                this.cd.detectChanges();
               });
-            } else {
-              console.error('⚠️ No se encontró el ID del usuario para eliminar.');
-              this.cargando = false;
-              this.toastService.warning('Advertencia', 'No se encontró el usuario');
-              this.cd.detectChanges();
+            },
+            error: (err) => {
+              this.ngZone.run(() => {
+                console.error('Error al eliminar usuario:', err);
+                this.cargando = false;
+                this.toastService.error('Error', 'No se pudo eliminar el usuario');
+                this.cd.detectChanges();
+              });
             }
           });
-        },
-        error: (err) => {
-          this.ngZone.run(() => {
-            console.error('Error al buscar usuario por email:', err);
-            this.cargando = false;
-            this.toastService.error('Error', 'Error al buscar usuario');
-            this.cd.detectChanges();
-          });
+        } else {
+          console.error('⚠️ No se encontró el ID del usuario para eliminar.');
+          this.cargando = false;
+          this.toastService.warning('Advertencia', 'No se encontró el usuario');
+          this.cd.detectChanges();
         }
       });
+    },
+    error: (err) => {
+      this.ngZone.run(() => {
+        console.error('Error al buscar usuario por email:', err);
+        this.cargando = false;
+        this.toastService.error('Error', 'Error al buscar usuario');
+        this.cd.detectChanges();
+      });
     }
+  });
+}
+
+
+
+
+  // Variables para el modal de confirmación
+mostrarModalConfirmacion: boolean = false;
+usuarioAEliminar: Usuario | null = null;
+
+// Métodos para manejar la confirmación
+abrirModalConfirmacion(usuario: Usuario): void {
+  this.audioService.play('assets/audios/Advertencia.mp3',0.6);
+  this.ngZone.run(() => {
+    this.usuarioAEliminar = usuario;
+    this.mostrarModalConfirmacion = true;
+    this.cd.detectChanges();
+  });
+}
+
+cerrarModalConfirmacion(): void {
+  this.ngZone.run(() => {
+    this.mostrarModalConfirmacion = false;
+    this.usuarioAEliminar = null;
+    this.cd.detectChanges();
+  });
+}
+
+confirmarEliminacion(): void {
+  if (this.usuarioAEliminar) {
+    this.eliminarUsuario(this.usuarioAEliminar);
+    this.cerrarModalConfirmacion();
   }
+}
+
 }
