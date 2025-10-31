@@ -48,6 +48,6 @@ export class ToastService {
   /** Toast de información */
   info(title: string, message: string, duration?: number): void {
     this.show('info', title, message, duration);
-    this.audioService.play('assets/audios/Info.mp3', 0.6);
+    this.audioService.play('assets/audios/Advertencia2.mp3', 0.6);
   }
 }

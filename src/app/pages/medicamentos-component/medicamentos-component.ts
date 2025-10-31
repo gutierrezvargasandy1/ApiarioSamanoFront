@@ -3,7 +3,7 @@ import { Almacen, AlmacenService } from '../../services/almaceneService/almacen-
 import { MedicamentosService, Medicamentos, MedicamentosRequest, MedicamentosResponse, MedicamentosConProveedorResponse, ProveedorResponseDTO } from '../../services/almaceneService/MedicamentosService/medicamentos-service';
 import { ProveedoresService, Proveedor } from '../../services/proveedoresService/proveedores-service';
 import { ToastService } from '../../services/toastService/toast-service';
-
+import { AudioService } from '../../services/Audio/audio-service';
 @Component({
   selector: 'app-medicamentos-component',
   standalone: false,
@@ -36,7 +36,8 @@ export class MedicamentosComponent implements OnInit {
     private almacenService: AlmacenService,
     private proveedorService: ProveedoresService,
     private cd: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private audiService : AudioService
   ) {}
 
   ngOnInit(): void {
@@ -203,6 +204,7 @@ export class MedicamentosComponent implements OnInit {
 
   // ==================== CRUD - ELIMINAR ====================
   abrirModalConfirmacion(medicamento: MedicamentosConProveedorResponse): void {
+    this.audiService.play('assets/audios/Advertencia.mp3',0.6)
     this.medicamentoAEliminar = medicamento;
     this.mostrarModalConfirmacion = true;
     this.cd.detectChanges();

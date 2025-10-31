@@ -208,7 +208,6 @@
         <!-- Acciones del modal -->
         <div class="modal-actions">
           <button class="btn save" type="submit" [disabled]="guardando">
-            <span class="material-icons">check</span> 
             {{ guardando ? 'Guardando...' : 'Guardar' }}
           </button>
           <button 
@@ -217,7 +216,6 @@
             (click)="cerrarFormulario()"
             [disabled]="guardando"
           >
-            <span class="material-icons">close</span> 
             Cancelar
           </button>
         </div>
@@ -235,6 +233,11 @@
       <h3>¿Estás seguro de eliminar este proveedor?</h3>
       
       <div class="confirmacion-info">
+<img 
+  *ngIf="proveedorAEliminar?.fotografia" 
+  [src]="getFotoUrl(proveedorAEliminar?.fotografia)" 
+  class="foto-tablaModal"
+/>
         <div class="proveedor-info">
           <strong>{{ proveedorAEliminar?.nombreEmpresa }}</strong>
         </div>

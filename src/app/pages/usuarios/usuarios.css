@@ -16,12 +16,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 5px;
   padding: 25px;
   background: #fff;
-  border-radius: 15px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   border-bottom: 3px solid #fbbf24;
+  position: sticky;
+  top: 80px;
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+.header.scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px 25px;
 }
 
 .header h2 {
@@ -187,7 +194,8 @@
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow: auto;
+  max-height: 75vh; 
 }
 
 .tabla {
@@ -197,6 +205,9 @@
 
 .tabla thead {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  position: sticky;
+  top: 0; /* Se pega en la parte superior del contenedor */
+  z-index: 10;
 }
 
 .tabla th {
@@ -659,3 +670,4 @@
     width: 100%;
   }
 }
+

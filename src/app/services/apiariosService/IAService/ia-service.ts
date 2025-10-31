@@ -36,12 +36,26 @@ export interface TestGeneracion {
   stackTrace?: string;
 }
 
+export interface ConsultaPersonalizadaRequest {
+  pregunta: string;
+  tipoContexto?: string; // Opcional para consultas con contexto específico
+}
+
+export interface ConsultaPersonalizadaResponse {
+  consulta: string;
+  respuesta: string;
+  contextoUtilizado: boolean;
+  tipoContexto?: string;
+  modeloUsado: string;
+  tiempoProcesamiento: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class IaService {
 
-  private apiUrl = 'http://localhost:8081/api/ia-analisis';
+  private apiUrl = 'http://localhost:8082/api/ia-analisis';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -52,6 +66,31 @@ export class IaService {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`  
     });
+  }
+
+  // 💬 CONSULTA PERSONALIZADA A LA IA
+  consultaPersonalizada(pregunta: string): Observable<CodigoResponse<ConsultaPersonalizadaResponse>> {
+    const request: ConsultaPersonalizadaRequest = { pregunta };
+    
+    return this.http.post<CodigoResponse<ConsultaPersonalizadaResponse>>(
+      `${this.apiUrl}/consulta`,
+      request,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // 💬 CONSULTA PERSONALIZADA CON CONTEXTO ESPECÍFICO
+  consultaPersonalizadaConContexto(pregunta: string, tipoContexto: string): Observable<CodigoResponse<ConsultaPersonalizadaResponse>> {
+    const request: ConsultaPersonalizadaRequest = { 
+      pregunta, 
+      tipoContexto 
+    };
+    
+    return this.http.post<CodigoResponse<ConsultaPersonalizadaResponse>>(
+      `${this.apiUrl}/consulta-contexto`,
+      request,
+      { headers: this.getHeaders() }
+    );
   }
 
   // 📊 Obtener análisis estadístico de apiarios

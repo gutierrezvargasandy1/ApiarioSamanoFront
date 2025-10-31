@@ -57,7 +57,7 @@ interface CodigoResponse<T> {
 })
 export class IaService {
 
-  private baseUrl = 'http://localhost:8080/api/produccion/ia';
+  private baseUrl = 'http://localhost:8087/api/produccion/ia';
 
   constructor(private http: HttpClient) { }
 

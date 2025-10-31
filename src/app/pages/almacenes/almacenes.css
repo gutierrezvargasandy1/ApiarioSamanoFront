@@ -66,7 +66,6 @@
         }
 
         .almacen-item {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
             border: 2px solid #fbbf24;
             border-radius: 12px;
             padding: 20px;
@@ -75,14 +74,10 @@
             transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
-        .almacen-item:hover {
-            /* Se removió transform: translateY(-3px); */
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
-        }
+ 
 
         .almacen-item.active {
             border-color: #f59e0b;
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
         }
 
         .almacen-header {
@@ -966,4 +961,638 @@
 .progress-bar:hover .progress-fill {
     transform: scale(1.02);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ==================== BARRAS DE PROGRESO ==================== */
+
+.progress-bar {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar.large {
+    height: 24px;
+    margin: 8px 0;
+}
+
+.progress-bar.medium {
+    height: 16px;
+    margin: 6px 0;
+}
+
+.progress-bar.small {
+    height: 8px;
+    margin: 4px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: all 0.4s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Efecto de brillo en el fill */
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+    );
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Niveles de porcentaje */
+.nivel-bajo {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.nivel-medio {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.nivel-alto {
+    background: linear-gradient(135deg, #dc3545, #e83e8c);
+}
+
+/* Efectos hover para las barras */
+.progress-bar:hover .progress-fill {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ==================== MODAL DE CONFIRMACIÓN ==================== */
+.confirmacion-modal {
+    text-align: center;
+    max-width: 480px;
+}
+
+.confirmacion-icon {
+    font-size: 64px;
+    color: #dc2626;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.confirmacion-modal h3 {
+    color: #dc2626;
+    justify-content: center;
+    border-bottom: none !important;
+    margin-bottom: 20px;
+}
+
+.confirmacion-info {
+    background: #fef2f2;
+    border: 2px solid #fecaca;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.item-imagen-preview {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 0 auto 15px;
+    display: block;
+    border: 2px solid #fbbf24;
+}
+
+.item-placeholder-preview {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 40px;
+    margin: 0 auto 15px;
+    border: 2px solid #fbbf24;
+}
+
+.item-nombre-confirm {
+    font-size: 18px;
+    font-weight: bold;
+    color: #92400e;
+    margin-bottom: 12px;
+}
+
+.item-detalles-confirm {
+    text-align: left;
+    margin-top: 12px;
+}
+
+.detalle-row {
+    padding: 6px 0;
+    border-bottom: 1px solid #fde68a;
+    display: flex;
+    justify-content: space-between;
+}
+
+.detalle-row:last-child {
+    border-bottom: none;
+}
+
+.detalle-label {
+    font-weight: 600;
+    color: #78350f;
+}
+
+.detalle-valor {
+    color: #92400e;
+}
+
+.advertencia {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #fffbeb;
+    border: 2px solid #fcd34d;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.advertencia .material-icons {
+    color: #d97706;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.advertencia p {
+    color: #78350f;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.confirmacion-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    border-top: 2px solid #fef3c7;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.btn.delete-confirm {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    flex: 0 1 auto;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn.delete-confirm:hover {
+    background: linear-gradient(135deg, #b91c1c, #991b1b);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.btn.delete-confirm:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.spinner-small {
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==================== MEJORAS PARA CARDS DE ITEMS ==================== */
+.item-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 2px solid #fbbf24;
+}
+
+.item-placeholder {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 30px;
+    margin-bottom: 8px;
+    border: 2px solid #fbbf24;
+}
+
+.file-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.file-input-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #fbbf24;
+    color: #78350f;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.file-input-label:hover {
+    background: #f59e0b;
+}
+
+#foto {
+    display: none;
+}
+
+.foto-preview {
+    position: relative;
+    width: 150px;
+    margin: 10px auto;
+}
+
+.foto-preview-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #fbbf24;
+}
+
+.btn-eliminar-foto {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-eliminar-foto:hover {
+    background: #b91c1c;
+    transform: scale(1.1);
+}
+
+.file-info {
+    font-size: 12px;
+    color: #78350f;
+    margin-top: 8px;
+}
+
+.file-info small {
+    display: block;
+    margin-top: 4px;
+}
+
+/* ========================================
+   ESTILOS PARA IMÁGENES EN ITEMS
+======================================== */
+
+.item-photo {
+    width: 100%;
+    margin: 10px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.item-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+/* ========================================
+   ESTILOS PARA PREVIEW DE FOTO EN MODALES
+======================================== */
+
+.foto-preview {
+    position: relative;
+    margin-top: 10px;
+    max-width: 200px;
+}
+
+.foto-preview img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.btn-remove-foto {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ff4444;
+    color: white;
+    border: 2px solid white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-remove-foto:hover {
+    background: #cc0000;
+    transform: scale(1.1);
+}
+
+/* ========================================
+   MODAL DE CONFIRMACIÓN
+======================================== */
+
+.modal-confirmacion {
+    max-width: 500px;
+    padding: 0;
+}
+
+.confirmacion-modal {
+    padding: 30px;
+    text-align: center;
+}
+
+.confirmacion-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.confirmacion-modal h3 {
+    color: #333;
+    margin-bottom: 25px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* ========================================
+   INFO DEL ITEM A ELIMINAR
+======================================== */
+
+.confirmacion-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.item-imagen-preview-container {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.item-imagen-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-placeholder-preview {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    font-size: 48px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.item-nombre-confirm {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.item-detalles-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.detalle-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.detalle-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.detalle-valor {
+    color: #333;
+    font-weight: 600;
+}
+
+/* ========================================
+   ADVERTENCIA
+======================================== */
+
+.advertencia {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.advertencia p {
+    margin: 0;
+    color: #856404;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ========================================
+   ACCIONES DE CONFIRMACIÓN
+======================================== */
+
+.confirmacion-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.confirmacion-actions .btn-modal {
+    min-width: 120px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+    color: white;
+    border: none;
+}
+
+.btn-delete:hover:not(:disabled) {
+    background: linear-gradient(135deg, #cc0000 0%, #990000 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+}
+
+.btn-delete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-cancelar {
+    background: white;
+    color: #666;
+    border: 2px solid #ddd;
+}
+
+.btn-cancelar:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #999;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   SPINNER PEQUEÑO
+======================================== */
+
+.spinner-small {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 768px) {
+    .modal-confirmacion {
+        max-width: 90%;
+    }
+    
+    .confirmacion-modal {
+        padding: 20px;
+    }
+    
+    .confirmacion-icon {
+        font-size: 48px;
+    }
+    
+    .confirmacion-modal h3 {
+        font-size: 18px;
+    }
+    
+    .item-imagen-preview-container,
+    .item-placeholder-preview {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .confirmacion-actions {
+        flex-direction: column;
+    }
+    
+    .confirmacion-actions .btn-modal {
+        width: 100%;
+    }
 }

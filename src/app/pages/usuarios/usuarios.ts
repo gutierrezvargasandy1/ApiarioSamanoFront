@@ -17,6 +17,7 @@ export class Usuarios implements OnInit {
   editando: boolean = false;
   mensaje: string = '';
   cargando: boolean = false;
+  usuarioLogueadoEmail: string | null = null;
 
   usuarioSeleccionado: Usuario = {
     id:0,
@@ -37,8 +38,22 @@ export class Usuarios implements OnInit {
   ) {}
 
   ngOnInit(): void {
+     const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      this.usuarioLogueadoEmail = payload.sub; // El email en tu JWT va en "sub"
+      console.log("Usuario logueado:", this.usuarioLogueadoEmail);
+    } catch (error) {
+      console.error("Error decodificando token:", error);
+    }
+    
+  }
     this.cargarUsuarios();
   }
+  esUsuarioLogueado(usuario: Usuario): boolean {
+  return usuario.email === this.usuarioLogueadoEmail;
+}
 
   cargarUsuarios(): void {
     this.cargando = true;

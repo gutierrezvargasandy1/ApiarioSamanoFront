@@ -74,13 +74,14 @@
               </button>
               
               <!-- Botón eliminar -->
-              <button 
-                class="btn delete" 
-                (click)="abrirModalConfirmacion(usuario)"
-                title="Eliminar usuario"
-              >
-                <span class="material-icons">delete</span>
-              </button>
+<button 
+  class="btn delete" 
+  (click)="abrirModalConfirmacion(usuario)"
+  title="Eliminar usuario"
+  *ngIf="!esUsuarioLogueado(usuario)"
+>
+  <span class="material-icons">delete</span>
+</button>
             </div>
           </td>
         </tr>
@@ -180,7 +181,6 @@
         <!-- Acciones del modal -->
         <div class="modal-actions">
           <button class="btn save" type="submit" [disabled]="cargando">
-            <span class="material-icons">check</span> 
             {{ cargando ? 'Guardando...' : 'Guardar' }}
           </button>
           <button 
@@ -188,7 +188,6 @@
             type="button" 
             (click)="cerrarFormulario()"
           >
-            <span class="material-icons">close</span> 
             Cancelar
           </button>
         </div>
@@ -239,7 +238,7 @@
           (click)="confirmarEliminacion()"
           [disabled]="cargando"
         >
-          <span class="material-icons" *ngIf="!cargando"></span>
+          <span class="material-icons" *ngIf="!cargando">delete</span>
           <span class="spinner-small" *ngIf="cargando"></span>
           {{ cargando ? 'Eliminando...' : 'Eliminar' }}
         </button>

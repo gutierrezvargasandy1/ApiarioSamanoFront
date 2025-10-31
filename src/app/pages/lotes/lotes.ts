@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { LotesService, LoteRequest, Lote, LoteConAlmacenResponse } from '../../services/produccionService/lotesService/lotes-service';
-import { AlmacenService, Almacen } from '../../services/almaceneService/almacen-service'; // Importar el servicio de almacenes
+import { AlmacenService, Almacen } from '../../services/almaceneService/almacen-service';
 
 @Component({
   selector: 'app-lotes',
@@ -15,7 +15,7 @@ export class Lotes implements OnInit {
   mostrarModalLote: boolean = false;
   loteEditando: Lote | null = null;
   cargando: boolean = false;
-  almacenes: Almacen[] = []; // Array para almacenar los almacenes
+  almacenes: Almacen[] = [];
   
   formLote: LoteRequest = {
     idAlmacen: 0,
@@ -24,31 +24,39 @@ export class Lotes implements OnInit {
 
   constructor(
     private lotesService: LotesService,
-    private almacenService: AlmacenService // Inyectar el servicio de almacenes
+    private almacenService: AlmacenService,
+    private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.cargarLotes();
+    this.cdRef.detectChanges();
   }
 
   // Cargar todos los lotes
   cargarLotes(): void {
     this.cargando = true;
+    this.cdRef.detectChanges();
+    
     this.lotesService.listarLotes().subscribe({
       next: (data) => {
         this.lotes = data;
         this.cargando = false;
+        this.cdRef.detectChanges();
       },
       error: (error) => {
         console.error('Error al cargar lotes:', error);
         this.cargando = false;
+        this.cdRef.detectChanges();
       }
     });
   }
 
-  // Método para cargar almacenes - IMPLEMENTADO
+  // Método para cargar almacenes
   cargarAlmacenes(): void {
     this.cargando = true;
+    this.cdRef.detectChanges();
+    
     this.almacenService.obtenerAlmacenes().subscribe({
       next: (response) => {
         if (response.data) {
@@ -59,12 +67,14 @@ export class Lotes implements OnInit {
           this.almacenes = [];
         }
         this.cargando = false;
+        this.cdRef.detectChanges();
       },
       error: (error) => {
         console.error('Error al cargar almacenes:', error);
         alert('Error al cargar la lista de almacenes');
         this.cargando = false;
         this.almacenes = [];
+        this.cdRef.detectChanges();
       }
     });
   }
@@ -73,14 +83,18 @@ export class Lotes implements OnInit {
   seleccionarLote(lote: Lote): void {
     if (lote.id) {
       this.cargando = true;
+      this.cdRef.detectChanges();
+      
       this.lotesService.obtenerLoteConAlmacen(lote.id).subscribe({
         next: (data) => {
           this.loteSeleccionado = data;
           this.cargando = false;
+          this.cdRef.detectChanges();
         },
         error: (error) => {
           console.error('Error al cargar detalles del lote:', error);
           this.cargando = false;
+          this.cdRef.detectChanges();
         }
       });
     }
@@ -108,16 +122,32 @@ export class Lotes implements OnInit {
       tipoProducto: ''
     };
     this.mostrarModalLote = true;
-    this.cargarAlmacenes(); // Cargar almacenes cuando se abre el modal
+    this.cargarAlmacenes();
+    this.cdRef.detectChanges();
   }
 
   // Cerrar modal de lote
   cerrarModalLote(): void {
     this.mostrarModalLote = false;
     this.loteEditando = null;
+    this.cdRef.detectChanges();
   }
 
-  // Guardar lote (crear)
+  // Método para editar lote
+  editarLote(lote: Lote, event: Event): void {
+    event.stopPropagation();
+    
+    this.loteEditando = lote;
+    this.formLote = {
+      idAlmacen: lote.idAlmacen || 0,
+      tipoProducto: lote.tipoProducto || ''
+    };
+    this.mostrarModalLote = true;
+    this.cargarAlmacenes();
+    this.cdRef.detectChanges();
+  }
+
+  // Guardar lote (crear o editar)
   guardarLote(): void {
     if (!this.formLote.idAlmacen || !this.formLote.tipoProducto.trim()) {
       alert('Por favor completa todos los campos');
@@ -125,28 +155,56 @@ export class Lotes implements OnInit {
     }
 
     this.cargando = true;
-    this.lotesService.guardarLote(this.formLote).subscribe({
-      next: (data) => {
-        console.log('Lote guardado:', data);
-        this.cargarLotes();
-        this.cerrarModalLote();
-        
-        // Seleccionar automáticamente el lote recién creado
-        if (data.id) {
-          setTimeout(() => {
-            const loteCreado = this.lotes.find(l => l.id === data.id);
-            if (loteCreado) {
-              this.seleccionarLote(loteCreado);
-            }
-          }, 500);
+    this.cdRef.detectChanges();
+    
+    if (this.loteEditando && this.loteEditando.id) {
+      // Editar lote existente - enviar objeto completo con ID
+      const loteActualizado = {
+        id: this.loteEditando.id,
+        idAlmacen: this.formLote.idAlmacen,
+        tipoProducto: this.formLote.tipoProducto
+      };
+      this.lotesService.guardarLote(loteActualizado).subscribe({
+        next: (data) => {
+          console.log('Lote actualizado:', data);
+          this.cargarLotes();
+          this.cerrarModalLote();
+          this.cdRef.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error al actualizar lote:', error);
+          alert('Error al actualizar el lote');
+          this.cargando = false;
+          this.cdRef.detectChanges();
         }
-      },
-      error: (error) => {
-        console.error('Error al guardar lote:', error);
-        alert('Error al guardar el lote');
-        this.cargando = false;
-      }
-    });
+      });
+    } else {
+      // Crear nuevo lote
+      this.lotesService.guardarLote(this.formLote).subscribe({
+        next: (data) => {
+          console.log('Lote guardado:', data);
+          this.cargarLotes();
+          this.cerrarModalLote();
+          
+          // Seleccionar automáticamente el lote recién creado
+          if (data.id) {
+            setTimeout(() => {
+              const loteCreado = this.lotes.find(l => l.id === data.id);
+              if (loteCreado) {
+                this.seleccionarLote(loteCreado);
+              }
+            }, 500);
+          }
+          this.cdRef.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error al guardar lote:', error);
+          alert('Error al guardar el lote');
+          this.cargando = false;
+          this.cdRef.detectChanges();
+        }
+      });
+    }
   }
 
   // Eliminar lote
@@ -157,6 +215,8 @@ export class Lotes implements OnInit {
     
     if (confirm(`¿Estás seguro de eliminar el lote #${lote.numeroSeguimiento}?`)) {
       this.cargando = true;
+      this.cdRef.detectChanges();
+      
       this.lotesService.eliminarLote(lote.id).subscribe({
         next: () => {
           console.log('Lote eliminado');
@@ -167,11 +227,13 @@ export class Lotes implements OnInit {
           }
           
           this.cargarLotes();
+          this.cdRef.detectChanges();
         },
         error: (error) => {
           console.error('Error al eliminar lote:', error);
           alert('Error al eliminar el lote');
           this.cargando = false;
+          this.cdRef.detectChanges();
         }
       });
     }
@@ -221,11 +283,29 @@ export class Lotes implements OnInit {
     return '';
   }
 
-  // Método auxiliar para contar recursos de un almacén (para mostrar en el select)
+  // Método auxiliar para contar recursos de un almacén
   contarRecursos(almacen: Almacen): number {
     const herramientas = almacen.herramientas?.length || 0;
     const materiasPrimas = almacen.materiasPrimas?.length || 0;
     const medicamentos = almacen.medicamentos?.length || 0;
     return herramientas + materiasPrimas + medicamentos;
+  }
+
+  // Método para manejar cambios en la búsqueda
+  onBusquedaChange(): void {
+    this.cdRef.detectChanges();
+  }
+
+  // Método para limpiar búsqueda
+  limpiarBusqueda(): void {
+    this.terminoBusqueda = '';
+    this.cdRef.detectChanges();
+  }
+
+  // Método para recargar datos
+  recargarDatos(): void {
+    this.cargarLotes();
+    this.cargarAlmacenes();
+    this.cdRef.detectChanges();
   }
 }

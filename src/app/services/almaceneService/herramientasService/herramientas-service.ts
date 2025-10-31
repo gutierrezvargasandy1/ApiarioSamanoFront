@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
+import { Almacen } from '../almacen-service';
 
 export interface CodigoResponse<T> {
   codigo: number;
@@ -10,6 +11,7 @@ export interface CodigoResponse<T> {
 }
 
 export interface HerramientasRequest {
+  id?: number | null;
   nombre: string;
   foto: string; // o ArrayBuffer si manejas bytes
   idAlmacen: number;
@@ -26,6 +28,7 @@ export interface HerramientasResponse {
 export interface HerramientasConProveedorResponse {
   id: number;
   nombre: string;
+  idAlmacen?: number; /// Quiero que salga el nnombdre del almacen
   foto: string; // o ArrayBuffer si manejas bytes
   proveedor: ProveedorResponseDTO;
 }

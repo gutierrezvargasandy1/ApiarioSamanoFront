@@ -160,7 +160,7 @@ export class ApiarioService {
   // 🔹 Eliminar receta cumplida
   eliminarRecetaCumplida(idApiario: number): Observable<CodigoResponse<any>> {
     return this.http.delete<CodigoResponse<any>>(
-      `${this.apiUrl}/${idApiario}/recetas`,
+      `${this.apiUrl}/${idApiario}/receta`,
       { headers: this.getHeaders() }
     );
   }

@@ -11,7 +11,7 @@
           (input)="onBuscarChange()"
           placeholder="Buscar medicamentos por nombre, descripción o proveedor..."
         >
-        <span class="search-icon">🔍</span>
+        <span class="material-icons search-icon">search</span>
       </div>
       <button 
         (click)="abrirFormulario()"
@@ -30,58 +30,61 @@
   </div>
 
   <!-- Catálogo de medicamentos -->
-  <div *ngIf="!cargando" class="catalogo">
-    <div 
-      *ngFor="let medicamento of filtrarMedicamentos(); trackBy: trackByMedicamentoId"
-      class="card fade-in"
-    >
-<div class="medicamento-media">
-  <img
-    *ngIf="medicamento.foto"
-    [src]="'data:image/jpeg;base64,' + medicamento.foto"
-    alt="{{ medicamento.nombre }}"
-    class="medicamento-thumb"
-  >
+<!-- Catálogo de medicamentos -->
+<div *ngIf="!cargando" class="catalogo">
   <div 
-    *ngIf="!medicamento.foto"
-    class="medicamento-placeholder"
+    *ngFor="let medicamento of filtrarMedicamentos(); trackBy: trackByMedicamentoId"
+    class="card fade-in"
   >
-    💊
-  </div>
-</div>
-      <div class="card-content">
-        <h3>{{ medicamento.nombre }}</h3>
-        <div class="card-info">
-          <strong>Descripción:</strong>
-          <span class="card-info-value">{{ medicamento.descripcion }}</span>
-        </div>
-        <div class="card-info">
-          <strong>Cantidad:</strong>
-          <span class="card-info-value">{{ medicamento.cantidad }}</span>
-        </div>
-        <div class="card-info">
-          <strong>Proveedor:</strong>
-          <span class="card-info-value">{{ obtenerNombreProveedor(medicamento) }}</span>
-        </div>
-      </div>
-      <div class="card-actions">
-        <button
-          (click)="editarMedicamento(medicamento)"
-          class="btn edit"
-        >
-          <span class="material-icons">edit</span>
-          Editar
-        </button>
-        <button
-          (click)="abrirModalConfirmacion(medicamento)"
-          class="btn delete"
-        >
-          <span class="material-icons">delete</span>
-          Eliminar
-        </button>
+    <div class="card-image">
+      <img
+        *ngIf="medicamento.foto"
+        [src]="'data:image/jpeg;base64,' + medicamento.foto"
+        [alt]="medicamento.nombre"
+        class="materia-imagen"
+      >
+      <div 
+        *ngIf="!medicamento.foto"
+        class="no-imagen"
+      >
+        💊
       </div>
     </div>
+    
+    <div class="card-content">
+      <h3>{{ medicamento.nombre }}</h3>
+      <div class="card-info">
+        <strong>Descripción:</strong>
+        <span class="card-info-value">{{ medicamento.descripcion }}</span>
+      </div>
+      <div class="card-info">
+        <strong>Cantidad:</strong>
+        <span class="card-info-value">{{ medicamento.cantidad }}</span>
+      </div>
+      <div class="card-info">
+        <strong>Proveedor:</strong>
+        <span class="card-info-value">{{ obtenerNombreProveedor(medicamento) }}</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button
+        (click)="editarMedicamento(medicamento)"
+        class="btn edit"
+        title="Editar medicamento"
+      >
+        <span class="material-icons">edit</span>
+      </button>
+      <button
+        (click)="abrirModalConfirmacion(medicamento)"
+        class="btn delete"
+        title="Eliminar medicamento"
+      >
+        <span class="material-icons">delete</span>
+      </button>
+    </div>
   </div>
+</div>
 
   <!-- Estado vacío -->
   <div *ngIf="filtrarMedicamentos().length === 0 && !cargando" class="empty-state">
@@ -195,46 +198,38 @@
       </div>
 
       <!-- Foto - Input para subir archivo (SOLO UNA FOTO) -->
-      <div>
-        <label>
-          Fotografía del Medicamento
-        </label>
-        <div class="file-upload-container">
-          <input
-            type="file"
-            (change)="onFileSelected($event)"
-            accept="image/*"
-            class="file-input"
-            id="fotoInput"
-            single
-          >
-          <label for="fotoInput" class="file-upload-label">
-            <span class="material-icons">cloud_upload</span>
-            <span class="file-upload-text">
-              {{ medicamentoSeleccionado.foto ? 'Cambiar imagen' : 'Seleccionar imagen' }}
-            </span>
-          </label>
-          
-          <!-- Vista previa de la imagen CENTRADA -->
-          <div *ngIf="medicamentoSeleccionado.foto" class="image-preview-container">
-            <div class="image-preview">
-             <img [src]="fotoParaVistaPrevia" alt="Vista previa" class="preview-image">              <button type="button" (click)="removeImage()" class="remove-image-btn">
-                <span class="material-icons">close</span>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Información del archivo -->
-          <div *ngIf="selectedFileName" class="file-info">
-            <span class="material-icons">image</span>
-            {{ selectedFileName }}
-            <span class="file-size" *ngIf="selectedFileSize">({{ selectedFileSize }})</span>
-          </div>
-        </div>
-        <p class="file-help-text">
-          Formatos aceptados: JPG, PNG, GIF. Tamaño máximo: 5MB. Solo se permite una imagen.
-        </p>
-      </div>
+<div>
+  <label>
+    Fotografía del Medicamento
+  </label>
+  
+  <!-- Mostrar botón de subida solo si NO hay foto -->
+  <div class="file-upload-container" *ngIf="!medicamentoSeleccionado.foto">
+    <input
+      type="file"
+      (change)="onFileSelected($event)"
+      accept="image/*"
+      class="file-input"
+      id="fotoInput"
+    >
+    <label for="fotoInput" class="file-upload-label">
+      <span class="material-icons">add_photo_alternate</span>
+      <span class="file-upload-text">
+        Seleccionar imagen
+      </span>
+    </label>
+  </div>
+
+  <!-- Vista previa de la imagen CENTRADA (solo cuando hay foto) -->
+  <div *ngIf="medicamentoSeleccionado.foto" class="image-preview-container">
+    <div class="image-preview">
+      <img [src]="fotoParaVistaPrevia" alt="Vista previa" class="preview-image">
+      <button type="button" (click)="removeImage()" class="remove-image-btn">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  </div>
+</div>
 
       <!-- Botones -->
       <div class="modal-actions">
@@ -243,7 +238,6 @@
           (click)="cerrarFormulario()"
           class="btn cancel"
         >
-          <span class="material-icons">close</span>
           Cancelar
         </button>
         <button
@@ -252,8 +246,7 @@
           class="btn save"
         >
           <span *ngIf="guardando" class="spinner-small"></span>
-          <span *ngIf="!guardando" class="material-icons">{{ editando ? 'update' : 'save' }}</span>
-          {{ guardando ? 'Guardando...' : (editando ? 'Actualizar' : 'Crear') }}
+          {{ guardando ? 'Guardando...' : (editando ? 'Actualizar' : 'Guardar') }}
         </button>
       </div>
     </form>
@@ -263,8 +256,9 @@
 <!-- Modal de confirmación de eliminación -->
 <div *ngIf="mostrarModalConfirmacion" class="modal">
   <div class="modal-content confirmacion-modal">
-    <div class="confirmacion-icon">⚠️</div>
-    <h3>Confirmar Eliminación</h3>
+      <div class="confirmacion-icon">
+        <span class="material-icons">warning</span>
+      </div>    <h3>Confirmar Eliminación</h3>
     
     <div class="confirmacion-info">
       <div class="medicamento-media">

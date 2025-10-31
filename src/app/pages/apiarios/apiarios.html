@@ -6,51 +6,70 @@
             <button class="btn-nuevo-apiario" (click)="abrirModalApiario()">
                 <span>➕</span> Nuevo
             </button>
+
+        </div>
+                            <div class="search-box">
+            <input 
+                type="text" 
+                placeholder="Buscar por número, tipo o ID..."
+                [(ngModel)]="terminoBusqueda"
+            />
+            <span class="search-icon">🔍</span>
         </div>
         
-        <div class="apiarios-lista">
-            <div 
-                *ngFor="let apiario of apiarios" 
-                class="apiario-item"
-                [class.active]="apiarioSeleccionado?.id === apiario.id"
-                (click)="seleccionarApiario(apiario)">
-                <div class="apiario-header">
-                    <span class="apiario-numero">Apiario #{{ apiario.numeroApiario }}</span>
-                    <span class="apiario-badge" [ngClass]="obtenerClaseBadge(apiario.salud)">
-                        {{ apiario.salud }}
-                    </span>
-                </div>
-                <div class="apiario-datos">
-                    <div class="dato-row">
-                        <span class="dato-label">📍 Ubicación:</span>
-                        <span class="dato-valor">{{ apiario.ubicacion }}</span>
-                    </div>
-                    <div class="dato-row">
-                        <span class="dato-label">💊 Receta:</span>
-                        <span class="dato-valor">{{ apiario.receta ? 'Activa' : 'Sin receta' }}</span>
-                    </div>
-                    <div class="dato-row">
-                        <span class="dato-label">📋 Historial:</span>
-                        <span class="dato-valor">{{ contarMedicamentos(apiario) }} medicamentos</span>
-                    </div>
-                </div>
-                <div class="botones-container">
-                    <button class="btn btn-editar" (click)="editarApiario(apiario, $event)">✏️ Editar</button>
-                    <button class="btn btn-receta" (click)="abrirModalReceta(apiario, $event)">💊 Receta</button>
-                    <button class="btn btn-eliminar" (click)="eliminarApiario(apiario, $event)">🗑️ Eliminar</button>
-                </div>
-            </div>
+<!-- Agrega el input de búsqueda arriba de la lista -->
 
-            <div *ngIf="cargando" class="empty-state">
-                <div class="empty-state-icon">⏳</div>
-                <p>Cargando apiarios...</p>
-            </div>
 
-            <div *ngIf="!cargando && apiarios.length === 0" class="empty-state">
-                <div class="empty-state-icon">🐝</div>
-                <p>No hay apiarios registrados</p>
+<div class="apiarios-lista">
+    <div 
+        *ngFor="let apiario of filtrarApiarios()" 
+        class="apiario-item"
+        [class.active]="apiarioSeleccionado?.id === apiario.id"
+        (click)="seleccionarApiario(apiario)">
+        <div class="apiario-header">
+            <span class="apiario-numero">Apiario #{{ apiario.numeroApiario }}</span>
+            <span class="apiario-badge" [ngClass]="obtenerClaseBadge(apiario.salud)">
+                {{ apiario.salud }}
+            </span>
+        </div>
+        <div class="apiario-datos">
+            <div class="dato-row">
+                <span class="dato-label">📍 Ubicación:</span>
+                <span class="dato-valor">{{ apiario.ubicacion }}</span>
+            </div>
+            <div class="dato-row">
+                <span class="dato-label">💊 Receta:</span>
+                <span class="dato-valor">{{ apiario.receta ? 'Activa' : 'Sin receta' }}</span>
+            </div>
+            <div class="dato-row">
+                <span class="dato-label">📋 Historial:</span>
+                <span class="dato-valor">{{ contarMedicamentos(apiario) }} medicamentos</span>
             </div>
         </div>
+        <div class="botones-container">
+            <button class="btn btn-editar" (click)="editarApiario(apiario, $event)">✏️ Editar</button>
+            <button class="btn btn-receta" (click)="abrirModalReceta(apiario, $event)">💊 Receta</button>
+            <button class="btn btn-eliminar" (click)="eliminarApiario(apiario, $event)">🗑️ Eliminar</button>
+        </div>
+    </div>
+
+    <!-- Estados vacíos actualizados -->
+    <div *ngIf="cargando" class="empty-state">
+        <div class="empty-state-icon">⏳</div>
+        <p>Cargando apiarios...</p>
+    </div>
+
+    <div *ngIf="!cargando && apiarios.length === 0" class="empty-state">
+        <div class="empty-state-icon">🐝</div>
+        <p>No hay apiarios registrados</p>
+    </div>
+
+    <div *ngIf="!cargando && apiarios.length > 0 && filtrarApiarios().length === 0 && terminoBusqueda.trim()" class="empty-state">
+        <div class="empty-state-icon">🔍</div>
+        <p>No se encontraron apiarios con "{{terminoBusqueda}}"</p>
+        <button class="btn btn-limpiar" (click)="terminoBusqueda = ''">Limpiar búsqueda</button>
+    </div>
+</div>
     </div>
 
     <!-- Panel Derecho - Detalles y Sugerencias -->
@@ -109,7 +128,7 @@
                         
                         <button class="btn btn-eliminar" style="width: 100%; margin-top: 15px;" 
                                 (click)="eliminarReceta(apiarioSeleccionado)">
-                            ✅ Marcar como Cumplida
+                            Marcar como Cumplida
                         </button>
                     </div>
                 </div>
@@ -145,52 +164,31 @@
         </div>
 
         <!-- Sugerencias -->
-        <div class="sugerencias-container">
-            <div class="sugerencias-header">
-                <h3>💡 Sugerencias de Mejora</h3>
-            </div>
+<div class="sugerencias-container">
+    <div class="sugerencias-header">
+        <h3>🔮 Predicciones</h3>
+        <div class="sugerencias-meta" *ngIf="!cargandoRecomendaciones && sugerenciasAutomaticas.length > 0">
+            <small>📍 {{obtenerUbicacionPredicciones()}} • ⏱️ {{obtenerTiempoProcesamiento()}}</small>
+        </div>
+    </div>
 
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🌸 Aumentar Flora Disponible</div>
-                <div class="sugerencia-texto">
-                    Considera plantar más flores melíferas cerca del apiario. La proximidad de fuentes de néctar puede aumentar el rendimiento hasta un 20%.
-                </div>
-            </div>
+    <!-- Rueda de carga -->
+    <div *ngIf="cargandoRecomendaciones" class="loading-container">
+        <div class="spinner"></div>
+        <p>Analizando predicciones con IA...</p>
+    </div>
 
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🔍 Inspección Regular</div>
-                <div class="sugerencia-texto">
-                    Realiza revisiones cada 7-10 días durante la temporada activa. Esto permite detectar problemas tempranamente y mantener colonias saludables.
-                </div>
-            </div>
+    <!-- Sin datos -->
+    <div *ngIf="!cargandoRecomendaciones && sugerenciasAutomaticas.length === 0" class="no-data">
+        <p>No hay predicciones disponibles en este momento.</p>
+    </div>
 
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🍯 Optimizar Momento de Cosecha</div>
-                <div class="sugerencia-texto">
-                    El mejor momento para cosechar es cuando al menos el 80% de las celdas están operculadas. Esto garantiza la calidad y madurez de la miel.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">👑 Control de Enjambrazón</div>
-                <div class="sugerencia-texto">
-                    Durante primavera, revisa y elimina celdas reales para prevenir la enjambrazón y mantener la población productiva en la colmena.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🌡️ Manejo de Temperatura</div>
-                <div class="sugerencia-texto">
-                    Asegura buena ventilación en verano y aislamiento en invierno. Las colmenas con temperatura estable son más productivas.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">💊 Prevención de Enfermedades</div>
-                <div class="sugerencia-texto">
-                    Implementa un programa de prevención contra varroa. Los tratamientos preventivos reducen la mortalidad hasta un 30%.
-                </div>
-            </div>
+    <!-- Predicciones cargadas -->
+    <div *ngFor="let sugerencia of sugerenciasAutomaticas; let i = index" class="sugerencia-item">
+        <div class="sugerencia-indice">{{i + 1}}</div>
+        <div class="sugerencia-content">
+            <div class="sugerencia-titulo">{{sugerencia.titulo}}</div>
+            <div class="sugerencia-texto" [innerHTML]="formatearTextoParaHTML(sugerencia.descripcion)"></div>
         </div>
     </div>
 </div>
@@ -380,6 +378,7 @@
 </div>
 
 <!-- Modal de Sugerencias IA -->
+<!-- Modal de Sugerencias IA -->
 <div class="modal-overlay" [class.active]="mostrarModalSugerencias">
     <div class="modal modal-sugerencias">
         <div class="modal-header">
@@ -417,63 +416,101 @@
                 </div>
             </div>
 
-            <!-- Sugerencias Automáticas -->
+            <!-- ✅ ÚNICO DIV PARA SUGERENCIAS - CON ESTADO DE CARGA -->
             <div class="sugerencias-automaticas">
                 <div class="sugerencias-header">
-                    <h4>🎯 Sugerencias Automáticas</h4>
-                    <span class="badge-ia">IA</span>
+                    <h4>🎯 Recomendaciones de IA</h4>
+                    <span class="badge-ia">🤖</span>
                 </div>
-                <div class="sugerencias-lista">
+                
+                <!-- Estado de carga -->
+                <div *ngIf="cargandoRecomendaciones" class="cargando-sugerencias">
+                    <div class="spinner-ia">⏳</div>
+                    <p>Generando recomendaciones personalizadas...</p>
+                    <small>Analizando datos del apiario #{{apiarioSeleccionado?.numeroApiario}}</small>
+                </div>
+
+                <!-- Sugerencias generadas por IA -->
+                <div *ngIf="!cargandoRecomendaciones && sugerenciasAutomaticas.length > 0" class="sugerencias-lista">
                     <div class="sugerencia-auto-item" *ngFor="let sugerencia of sugerenciasAutomaticas; let i = index">
                         <div class="sugerencia-icono">💡</div>
                         <div class="sugerencia-contenido">
-                            <div class="sugerencia-titulo">{{sugerencia.titulo}}</div>
                             <div class="sugerencia-descripcion">{{sugerencia.descripcion}}</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Chat con IA -->
-            <div class="chat-ia">
-                <div class="chat-header">
-                    <h4>🤖 Consulta a la IA</h4>
-                    <span class="badge-online">En línea</span>
-                </div>
-                
-                <div class="chat-messages">
-                    <div class="message ia-message">
-                        <div class="message-avatar">🤖</div>
-                        <div class="message-content">
-                            <div class="message-text">
-                                Hola! Soy tu asistente de apicultura. ¿En qué puedo ayudarte con el apiario #{{apiarioSeleccionado?.numeroApiario}}?
-                            </div>
-                            <div class="message-time">Ahora</div>
-                        </div>
-                    </div>
-                    
-                    <div class="message user-message" *ngFor="let mensaje of mensajesChat">
-                        <div class="message-content">
-                            <div class="message-text">{{mensaje.texto}}</div>
-                            <div class="message-time">{{mensaje.tiempo}}</div>
-                        </div>
-                        <div class="message-avatar">👤</div>
-                    </div>
-                </div>
-
-                <div class="chat-input-container">
-                    <textarea 
-                        [(ngModel)]="nuevaPregunta" 
-                        placeholder="Escribe tu pregunta sobre el apiario..."
-                        class="chat-input"
-                        (keydown.enter)="enviarPregunta($event)"
-                    ></textarea>
-                    <button class="btn-enviar" (click)="enviarPregunta()" [disabled]="!nuevaPregunta.trim()">
-                        <span>🚀</span>
-                        Enviar
+                <!-- Sin sugerencias disponibles -->
+                <div *ngIf="!cargandoRecomendaciones && sugerenciasAutomaticas.length === 0" class="sin-sugerencias">
+                    <div class="sin-sugerencias-icono">🤖</div>
+                    <p>No hay recomendaciones disponibles en este momento</p>
+                    <small>Intenta recargar o consulta directamente en el chat</small>
+                    <button class="btn-reintentar" (click)="obtenerRecomendacionesIA()">
+                        🔄 Reintentar
                     </button>
                 </div>
             </div>
+
+            <!-- Chat con IA -->
+<!-- Chat con IA -->
+<div class="chat-ia">
+    <div class="chat-header">
+        <h4>💬 Consulta Específica</h4>
+        <span class="badge-online" [class.badge-offline]="cargandoChat"> 
+            {{ cargandoChat ? 'Procesando...' : 'En línea' }}
+        </span>
+    </div>
+    
+    <div class="chat-messages">
+        <!-- Mensajes del chat -->
+        <div *ngFor="let mensaje of mensajesChat" 
+             class="message" 
+             [class.user-message]="mensaje.tipo === 'usuario'" 
+             [class.ia-message]="mensaje.tipo === 'ia'"
+             [class.message-enviando]="mensaje.estado === 'enviando'"
+             [class.message-error]="mensaje.estado === 'error'">
+            
+            <div class="message-avatar" *ngIf="mensaje.tipo === 'ia'">🤖</div>
+            
+            <div class="message-content">
+                <div class="message-text">
+                    {{ mensaje.texto }}
+                    <!-- Indicador de escritura -->
+                    <div *ngIf="mensaje.estado === 'enviando'" class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="message-time">{{ mensaje.tiempo }}</div>
+            </div>
+            
+            <div class="message-avatar" *ngIf="mensaje.tipo === 'usuario'">👤</div>
+        </div>
+    </div>
+
+    <div class="chat-input-container">
+        <textarea 
+            [(ngModel)]="nuevaPregunta" 
+            placeholder="Escribe tu pregunta sobre el apiario..."
+            class="chat-input"
+            (keydown)="onChatKeydown($event)"
+            [disabled]="cargandoChat"
+            rows="1"
+        ></textarea>
+        <button class="btn-enviar" 
+                (click)="enviarPregunta()" 
+                [disabled]="!nuevaPregunta.trim() || cargandoChat">
+            <span *ngIf="!cargandoChat"></span>
+            <span *ngIf="cargandoChat" class="spinner-mini">⏳</span>
+            {{ cargandoChat ? 'Enviando...' : 'Enviar' }}
+        </button>
+    </div>
+</div>
+
+
+
+
         </div>
     </div>
 </div>

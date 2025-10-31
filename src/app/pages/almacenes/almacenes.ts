@@ -5,6 +5,7 @@ import { HerramientasService, HerramientasRequest, HerramientasResponse } from '
 import { MedicamentosService, MedicamentosRequest, MedicamentosResponse } from '../../services/almaceneService/MedicamentosService/medicamentos-service';
 import { LotesService, Lote, LoteRequest, LoteConAlmacenResponse } from '../../services/produccionService/lotesService/lotes-service';
 import { ToastService } from '../../services/toastService/toast-service';
+import { Proveedor, ProveedoresService } from '../../services/proveedoresService/proveedores-service';
 
 type TabType = 'materiasPrimas' | 'herramientas' | 'medicamentos' | 'lotes';
 
@@ -15,6 +16,10 @@ type TabType = 'materiasPrimas' | 'herramientas' | 'medicamentos' | 'lotes';
   styleUrl: './almacenes.css'
 })
 export class Almacenes implements OnInit {
+
+  proveedores: Proveedor[] = [];
+
+
   // Estado de la aplicación
   almacenes: Almacen[] = [];
   almacenSeleccionado: Almacen | null = null;
@@ -91,6 +96,25 @@ export class Almacenes implements OnInit {
     foto: ''
   };
 
+  // Modales de confirmación
+  mostrarModalConfirmacionMateria: boolean = false;
+  mostrarModalConfirmacionHerramienta: boolean = false;
+  mostrarModalConfirmacionMedicamento: boolean = false;
+  mostrarModalConfirmacionLote: boolean = false;
+
+  // Items a eliminar
+  materiaAEliminar: any = null;
+  herramientaAEliminar: any = null;
+  medicamentoAEliminar: any = null;
+  loteAEliminar: any = null;
+
+  // Estado de eliminación
+  eliminando: boolean = false;
+
+  // Archivo seleccionado para previsualización
+  archivoSeleccionado: File | null = null;
+  fotoPreview: string = '';
+
   constructor(
     private almacenService: AlmacenService,
     private materiasPrimasService: MateriasPrimasService,
@@ -98,19 +122,37 @@ export class Almacenes implements OnInit {
     private medicamentosService: MedicamentosService,
     private lotesService: LotesService,
     private toastService: ToastService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private proveedorService : ProveedoresService,
+
   ) {}
 
   ngOnInit(): void {
-    setTimeout(() => {
-      this.cargarAlmacenes();
-    });
+    this.cargarAlmacenes();
+    this.cargarProveedores();
   }
+  
+  
+
+ cargarProveedores() {
+  this.proveedorService.listarProveedores()
+    .subscribe({
+      next: (data) => {
+        this.proveedores = data; // Asignas la lista al array del componente
+        console.log('Proveedores cargados:', this.proveedores);
+      },
+      error: (err) => {
+        console.error('Error al cargar proveedores', err);
+      }
+    });
+}
+
 
   // ==================== ALMACENES ====================
   
   cargarAlmacenes(): void {
     this.cargando = true;
+    this.cdRef.detectChanges();
     console.log('🔄 Iniciando carga de almacenes...');
     
     this.almacenService.obtenerAlmacenes().subscribe({
@@ -127,18 +169,14 @@ export class Almacenes implements OnInit {
           }
         } else {
           console.log('❌ Error en respuesta:', response);
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al cargar almacenes');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al cargar almacenes');
         }
         this.cargando = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al cargar almacenes:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudieron cargar los almacenes');
-        });
+        this.toastService.error('Error', 'No se pudieron cargar los almacenes');
         this.cargando = false;
         this.cdRef.detectChanges();
       }
@@ -154,6 +192,7 @@ export class Almacenes implements OnInit {
     this.obtenerReporteEspacios();
     
     console.log('📦 Almacén seleccionado:', almacen);
+    this.cdRef.detectChanges();
   }
 
   // ==================== NUEVOS MÉTODOS PARA ESPACIOS OCUPADOS ====================
@@ -194,13 +233,12 @@ export class Almacenes implements OnInit {
     if (!this.almacenSeleccionado) return;
 
     this.actualizandoEspacios = true;
+    this.cdRef.detectChanges();
     
     this.almacenService.actualizarEspaciosOcupados(this.almacenSeleccionado.id).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Espacios ocupados actualizados correctamente');
-          });
+          this.toastService.success('Éxito', 'Espacios ocupados actualizados correctamente');
           
           // Recargar la información del almacén
           this.cargarAlmacenes();
@@ -208,18 +246,14 @@ export class Almacenes implements OnInit {
           
           console.log('✅ Espacios actualizados:', response.data);
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al actualizar espacios');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al actualizar espacios');
         }
         this.actualizandoEspacios = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al actualizar espacios:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudieron actualizar los espacios');
-        });
+        this.toastService.error('Error', 'No se pudieron actualizar los espacios');
         this.actualizandoEspacios = false;
         this.cdRef.detectChanges();
       }
@@ -232,6 +266,7 @@ export class Almacenes implements OnInit {
     if (!this.almacenSeleccionado) return;
 
     this.cargandoItems = true;
+    this.cdRef.detectChanges();
     
     this.lotesService.listarLotes().subscribe({
       next: (lotes: Lote[]) => {
@@ -243,9 +278,7 @@ export class Almacenes implements OnInit {
       },
       error: (err: any) => {
         console.error('❌ Error al cargar lotes:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudieron cargar los lotes');
-        });
+        this.toastService.error('Error', 'No se pudieron cargar los lotes');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -267,6 +300,7 @@ export class Almacenes implements OnInit {
       };
     }
     this.mostrarModalLote = true;
+    this.cdRef.detectChanges();
   }
 
   cerrarModalLote(): void {
@@ -276,33 +310,29 @@ export class Almacenes implements OnInit {
       idAlmacen: 0,
       tipoProducto: ''
     };
+    this.cdRef.detectChanges();
   }
 
-guardarLote(): void {
+  guardarLote(): void {
     if (!this.formLote.tipoProducto || !this.formLote.idAlmacen) {
-      setTimeout(() => {
-        this.toastService.warning('Atención', 'Por favor complete todos los campos obligatorios');
-      });
+      this.toastService.warning('Atención', 'Por favor complete todos los campos obligatorios');
       return;
     }
 
     // Verificar si hay espacios disponibles antes de proceder
     if (!this.almacenSeleccionado) {
-      setTimeout(() => {
-        this.toastService.error('Error', 'No se ha seleccionado un almacén');
-      });
+      this.toastService.error('Error', 'No se ha seleccionado un almacén');
       return;
     }
 
     const espaciosOcupados = this.calcularEspaciosOcupados(this.almacenSeleccionado);
     if (espaciosOcupados >= this.almacenSeleccionado.capacidad) {
-      setTimeout(() => {
-        this.toastService.warning('Almacén lleno', 'No hay espacios disponibles en este almacén');
-      });
+      this.toastService.warning('Almacén lleno', 'No hay espacios disponibles en este almacén');
       return;
     }
 
     this.cargandoItems = true;
+    this.cdRef.detectChanges();
 
     const request: LoteRequest = {
       idAlmacen: this.formLote.idAlmacen,
@@ -311,18 +341,14 @@ guardarLote(): void {
 
     if (this.loteEditando) {
       // Editar lote (si tu backend soporta edición)
-      setTimeout(() => {
-        this.toastService.warning('Información', 'La función de editar lotes requiere implementar el endpoint PUT en el backend');
-      });
+      this.toastService.warning('Información', 'La función de editar lotes requiere implementar el endpoint PUT en el backend');
       this.cargandoItems = false;
       this.cdRef.detectChanges();
     } else {
       // Crear nuevo lote
       this.lotesService.guardarLote(request).subscribe({
         next: (response: Lote) => {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Lote creado correctamente');
-          });
+          this.toastService.success('Éxito', 'Lote creado correctamente');
           this.cargarLotesDelAlmacen();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
           this.cerrarModalLote();
@@ -331,9 +357,7 @@ guardarLote(): void {
         },
         error: (err: any) => {
           console.error('❌ Error al crear lote:', err);
-          setTimeout(() => {
-            this.toastService.error('Error', 'No se pudo crear el lote');
-          });
+          this.toastService.error('Error', 'No se pudo crear el lote');
           this.cargandoItems = false;
           this.cdRef.detectChanges();
         }
@@ -349,28 +373,23 @@ guardarLote(): void {
     }
 
     this.cargandoItems = true;
+    this.cdRef.detectChanges();
 
     this.lotesService.eliminarLote(lote.id!).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Lote eliminado correctamente');
-          });
+          this.toastService.success('Éxito', 'Lote eliminado correctamente');
           this.cargarLotesDelAlmacen();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al eliminar lote');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar lote');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al eliminar lote:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo eliminar el lote');
-        });
+        this.toastService.error('Error', 'No se pudo eliminar el lote');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -386,6 +405,7 @@ guardarLote(): void {
     if (tab === 'lotes' && this.almacenSeleccionado) {
       this.cargarLotesDelAlmacen();
     }
+    this.cdRef.detectChanges();
   }
 
   obtenerNombreTab(): string {
@@ -422,6 +442,60 @@ guardarLote(): void {
 
   // ==================== ITEMS (MATERIAS PRIMAS, HERRAMIENTAS, MEDICAMENTOS) ====================
   
+  abrirModalItem(item?: any): void {
+    switch (this.tabActiva) {
+      case 'medicamentos':
+        this.mostrarModalMedicamento = true;
+        if (item) {
+          this.medicamentoEditando = item;
+          this.formMedicamento = { ...item };
+        } else {
+          this.medicamentoEditando = null;
+          this.formMedicamento = {
+            nombre: '',
+            descripcion: '',
+            cantidad: 0,
+            idProveedor: 0,
+            foto: ''
+          };
+        }
+        break;
+      case 'herramientas':
+        this.mostrarModalHerramienta = true;
+        if (item) {
+          this.herramientaEditando = item;
+          this.formHerramienta = { ...item };
+        } else {
+          this.herramientaEditando = null;
+          this.formHerramienta = {
+            nombre: '',
+            idProveedor: 0,
+            foto: ''
+          };
+        }
+        break;
+      case 'materiasPrimas':
+        this.mostrarModalMateriaPrima = true;
+        if (item) {
+          this.materiaPrimaEditando = item;
+          this.formMateriaPrima = { ...item };
+        } else {
+          this.materiaPrimaEditando = null;
+          this.formMateriaPrima = {
+            nombre: '',
+            cantidad: 0,
+            idProveedor: 0,
+            foto: ''
+          };
+        }
+        break; 
+      case 'lotes':
+        this.abrirModalLote(item);
+        break;
+    }
+    this.cdRef.detectChanges();
+  }
+
   cerrarModalItem(): void {
     this.mostrarModalItem = false;
     this.itemEditando = null;
@@ -432,24 +506,58 @@ guardarLote(): void {
       idProveedor: 0,
       foto: ''
     };
+    this.cdRef.detectChanges();
+  }
+
+  cerrarModalMedicamento(): void {
+    this.mostrarModalMedicamento = false;
+    this.medicamentoEditando = null;
+    this.formMedicamento = {
+      nombre: '',
+      descripcion: '',
+      cantidad: 0,
+      idProveedor: 0,
+      foto: ''
+    };
+    this.cdRef.detectChanges();
+  }
+
+  cerrarModalHerramienta(): void {
+    this.mostrarModalHerramienta = false;
+    this.herramientaEditando = null;
+    this.formHerramienta = {
+      nombre: '',
+      idProveedor: 0,
+      foto: ''
+    };
+    this.cdRef.detectChanges();
+  }
+
+  cerrarModalMateriaPrima(): void {
+    this.mostrarModalMateriaPrima = false;
+    this.materiaPrimaEditando = null;
+    this.formMateriaPrima = {
+      nombre: '',
+      cantidad: 0,
+      idProveedor: 0,
+      foto: ''
+    };
+    this.cdRef.detectChanges();
   }
 
   guardarItem(): void {
     if (!this.formItem.nombre || this.formItem.cantidad <= 0 || !this.formItem.idProveedor) {
-      setTimeout(() => {
-        this.toastService.warning('Atención', 'Por favor complete todos los campos obligatorios');
-      });
+      this.toastService.warning('Atención', 'Por favor complete todos los campos obligatorios');
       return;
     }
 
     if (!this.almacenSeleccionado) {
-      setTimeout(() => {
-        this.toastService.error('Error', 'Debe seleccionar un almacén primero');
-      });
+      this.toastService.error('Error', 'Debe seleccionar un almacén primero');
       return;
     }
 
     this.cargandoItems = true;
+    this.cdRef.detectChanges();
 
     switch (this.tabActiva) {
       case 'materiasPrimas':
@@ -466,71 +574,61 @@ guardarLote(): void {
 
   guardarMateriaPrima(): void {
     const request: MateriasPrimasRequest = {
-      nombre: this.formItem.nombre,
-      foto: this.formItem.foto,
-      cantidad: this.formItem.cantidad,
+      nombre: this.formMateriaPrima.nombre,
+      foto: this.formMateriaPrima.foto,
+      cantidad: this.formMateriaPrima.cantidad,
       idAlmacen: this.almacenSeleccionado!.id,
-      idProvedor: this.formItem.idProveedor
+      idProvedor: this.formMateriaPrima.idProveedor
     };
 
     this.materiasPrimasService.guardar(request).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Materia prima guardada correctamente');
-          });
+          this.toastService.success('Éxito', 'Materia prima guardada correctamente');
           this.cargarAlmacenes();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
-          this.cerrarModalItem();
+          this.cerrarModalMateriaPrima();
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al guardar');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al guardar');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al guardar materia prima:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo guardar la materia prima');
-        });
+        this.toastService.error('Error', 'No se pudo guardar la materia prima');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
     });
   }
 
-   guardarHerramienta(): void {
+  guardarHerramienta(): void {
     const request: HerramientasRequest = {
-      nombre: this.formItem.nombre,
-      foto: this.formItem.foto,
+      id: this.herramientaEditando?.id || 0,
+      nombre: this.formHerramienta.nombre,
+      foto: this.formHerramienta.foto,
       idAlmacen: this.almacenSeleccionado!.id,
-      idProveedor: this.formItem.idProveedor
+      idProveedor: this.formHerramienta.idProveedor
+     
     };
 
     this.herramientasService.guardar(request).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Herramienta guardada correctamente');
-          });
+          this.toastService.success('Éxito', 'Herramienta guardada correctamente');
           this.cargarAlmacenes();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
-          this.cerrarModalItem();
+          this.cerrarModalHerramienta();
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al guardar');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al guardar');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al guardar herramienta:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo guardar la herramienta');
-        });
+        this.toastService.error('Error', 'No se pudo guardar la herramienta');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -539,36 +637,30 @@ guardarLote(): void {
 
   guardarMedicamento(): void {
     const request: MedicamentosRequest = {
-      nombre: this.formItem.nombre,
-      descripcion: this.formItem.descripcion,
+      nombre: this.formMedicamento.nombre,
+      descripcion: this.formMedicamento.descripcion,
       idAlmacen: this.almacenSeleccionado!.id,
-      cantidad: this.formItem.cantidad.toString(),
-      idProveedor: this.formItem.idProveedor,
-      foto: this.formItem.foto
+      cantidad: this.formMedicamento.cantidad.toString(),
+      idProveedor: this.formMedicamento.idProveedor,
+      foto: this.formMedicamento.foto
     };
 
     this.medicamentosService.crear(request).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Medicamento guardado correctamente');
-          });
+          this.toastService.success('Éxito', 'Medicamento guardado correctamente');
           this.cargarAlmacenes();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
-          this.cerrarModalItem();
+          this.cerrarModalMedicamento();
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al guardar');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al guardar');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al guardar medicamento:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo guardar el medicamento');
-        });
+        this.toastService.error('Error', 'No se pudo guardar el medicamento');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -583,6 +675,7 @@ guardarLote(): void {
     }
 
     this.cargandoItems = true;
+    this.cdRef.detectChanges();
 
     switch (this.tabActiva) {
       case 'materiasPrimas':
@@ -601,24 +694,18 @@ guardarLote(): void {
     this.materiasPrimasService.eliminarPorId(id).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Materia prima eliminada');
-          });
+          this.toastService.success('Éxito', 'Materia prima eliminada');
           this.cargarAlmacenes();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al eliminar');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al eliminar materia prima:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo eliminar');
-        });
+        this.toastService.error('Error', 'No se pudo eliminar');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -629,24 +716,18 @@ guardarLote(): void {
     this.herramientasService.eliminar(id).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Herramienta eliminada');
-          });
+          this.toastService.success('Éxito', 'Herramienta eliminada');
           this.cargarAlmacenes();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al eliminar');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al eliminar herramienta:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo eliminar');
-        });
+        this.toastService.error('Error', 'No se pudo eliminar');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -657,24 +738,18 @@ guardarLote(): void {
     this.medicamentosService.eliminar(id).subscribe({
       next: (response: any) => {
         if (response.codigo === 200) {
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Medicamento eliminado');
-          });
+          this.toastService.success('Éxito', 'Medicamento eliminado');
           this.cargarAlmacenes();
           this.actualizarEspaciosOcupados(); // 🔄 ACTUALIZAR ESPACIOS
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al eliminar');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
         }
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al eliminar medicamento:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo eliminar');
-        });
+        this.toastService.error('Error', 'No se pudo eliminar');
         this.cargandoItems = false;
         this.cdRef.detectChanges();
       }
@@ -745,6 +820,7 @@ guardarLote(): void {
       };
     }
     this.mostrarModalAlmacen = true;
+    this.cdRef.detectChanges();
   }
 
   eliminarAlmacen(almacen: Almacen, event: Event): void {
@@ -755,6 +831,7 @@ guardarLote(): void {
     }
 
     this.cargando = true;
+    this.cdRef.detectChanges();
   
     this.almacenService.eliminarAlmacen(almacen.id).subscribe({
       next: (response: any) => {
@@ -766,22 +843,16 @@ guardarLote(): void {
             this.reporteEspacios = null;
           }
           
-          setTimeout(() => {
-            this.toastService.success('Éxito', 'Almacén eliminado correctamente');
-          });
+          this.toastService.success('Éxito', 'Almacén eliminado correctamente');
         } else {
-          setTimeout(() => {
-            this.toastService.error('Error', response.descripcion || 'Error al eliminar almacén');
-          });
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar almacén');
         }
         this.cargando = false;
         this.cdRef.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al eliminar almacén:', err);
-        setTimeout(() => {
-          this.toastService.error('Error', 'No se pudo eliminar el almacén');
-        });
+        this.toastService.error('Error', 'No se pudo eliminar el almacén');
         this.cargando = false;
         this.cdRef.detectChanges();
       }
@@ -796,13 +867,12 @@ guardarLote(): void {
       ubicacion: '',
       capacidad: 0
     };
+    this.cdRef.detectChanges();
   }
 
   guardarAlmacen(): void {
     if (!this.formAlmacen.ubicacion || !this.formAlmacen.capacidad) {
-      setTimeout(() => {
-        this.toastService.warning('Atención', 'Por favor complete todos los campos');
-      });
+      this.toastService.warning('Atención', 'Por favor complete todos los campos');
       return;
     }
 
@@ -812,11 +882,10 @@ guardarLote(): void {
     };
 
     this.cargando = true;
+    this.cdRef.detectChanges();
 
     if (this.almacenEditando) {
-      setTimeout(() => {
-        this.toastService.warning('Información', 'La función de editar requiere implementar el endpoint PUT en el backend');
-      });
+      this.toastService.warning('Información', 'La función de editar requiere implementar el endpoint PUT en el backend');
       this.cargando = false;
       this.cdRef.detectChanges();
     } else {
@@ -824,23 +893,17 @@ guardarLote(): void {
         next: (response: any) => {
           if (response.codigo === 200) {
             this.almacenes.push(response.data);
-            setTimeout(() => {
-              this.toastService.success('Éxito', 'Almacén creado correctamente');
-            });
+            this.toastService.success('Éxito', 'Almacén creado correctamente');
             this.cerrarModalAlmacen();
           } else {
-            setTimeout(() => {
-              this.toastService.error('Error', response.descripcion || 'Error al crear almacén');
-            });
+            this.toastService.error('Error', response.descripcion || 'Error al crear almacén');
           }
           this.cargando = false;
           this.cdRef.detectChanges();
         },
         error: (err: any) => {
           console.error('❌ Error al crear almacén:', err);
-          setTimeout(() => {
-            this.toastService.error('Error', 'No se pudo crear el almacén');
-          });
+          this.toastService.error('Error', 'No se pudo crear el almacén');
           this.cargando = false;
           this.cdRef.detectChanges();
         }
@@ -850,122 +913,230 @@ guardarLote(): void {
 
   // ==================== MÉTODOS PARA MEDICAMENTOS ====================
 
-  abrirModalMedicamento(medicamento?: any): void {
-    if (medicamento) {
-      this.medicamentoEditando = medicamento;
-      this.formMedicamento = {
-        nombre: medicamento.nombre,
-        descripcion: medicamento.descripcion || '',
-        cantidad: medicamento.cantidad,
-        idProveedor: medicamento.idProveedor || medicamento.proveedor?.id || 0,
-        foto: medicamento.foto || ''
-      };
-    } else {
-      this.medicamentoEditando = null;
-      this.formMedicamento = {
-        nombre: '',
-        descripcion: '',
-        cantidad: 0,
-        idProveedor: 0,
-        foto: ''
-      };
-    }
-    this.mostrarModalMedicamento = true;
+  abrirModalConfirmacionMedicamento(medicamento: any, event: Event): void {
+    event.stopPropagation();
+    this.medicamentoAEliminar = medicamento;
+    this.mostrarModalConfirmacionMedicamento = true;
+    this.cdRef.detectChanges();
   }
 
-  cerrarModalMedicamento(): void {
-    this.mostrarModalMedicamento = false;
-    this.medicamentoEditando = null;
-    this.formMedicamento = {
-      nombre: '',
-      descripcion: '',
-      cantidad: 0,
-      idProveedor: 0,
-      foto: ''
-    };
+  cerrarModalConfirmacionMedicamento(): void {
+    this.mostrarModalConfirmacionMedicamento = false;
+    this.medicamentoAEliminar = null;
+    this.cdRef.detectChanges();
+  }
+
+  confirmarEliminacionMedicamento(): void {
+    if (!this.medicamentoAEliminar) return;
+
+    this.eliminando = true;
+    this.cdRef.detectChanges();
+    
+    this.medicamentosService.eliminar(this.medicamentoAEliminar.id).subscribe({
+      next: (response: any) => {
+        if (response.codigo === 200) {
+          this.toastService.success('Éxito', 'Medicamento eliminado correctamente');
+          this.cargarAlmacenes();
+          this.actualizarEspaciosOcupados();
+          this.cerrarModalConfirmacionMedicamento();
+        } else {
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
+        }
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al eliminar medicamento:', err);
+        this.toastService.error('Error', 'No se pudo eliminar el medicamento');
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      }
+    });
+  }
+
+  // ==================== MÉTODOS PARA LOTES ====================
+
+  abrirModalConfirmacionLote(lote: Lote, event: Event): void {
+    event.stopPropagation();
+    this.loteAEliminar = lote;
+    this.mostrarModalConfirmacionLote = true;
+    this.cdRef.detectChanges();
+  }
+
+  cerrarModalConfirmacionLote(): void {
+    this.mostrarModalConfirmacionLote = false;
+    this.loteAEliminar = null;
+    this.cdRef.detectChanges();
+  }
+
+  confirmarEliminacionLote(): void {
+    if (!this.loteAEliminar || !this.loteAEliminar.id) return;
+
+    this.eliminando = true;
+    this.cdRef.detectChanges();
+    
+    this.lotesService.eliminarLote(this.loteAEliminar.id).subscribe({
+      next: (response: any) => {
+        if (response.codigo === 200) {
+          this.toastService.success('Éxito', 'Lote eliminado correctamente');
+          this.cargarLotesDelAlmacen();
+          this.actualizarEspaciosOcupados();
+          this.cerrarModalConfirmacionLote();
+        } else {
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
+        }
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al eliminar lote:', err);
+        this.toastService.error('Error', 'No se pudo eliminar el lote');
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      }
+    });
+  }
+
+  // ==================== MÉTODO PARA MANEJAR SELECCIÓN DE ARCHIVO ====================
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.archivoSeleccionado = file;
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.fotoPreview = e.target.result;
+        
+        // Guardar en el formulario correspondiente
+        switch (this.tabActiva) {
+          case 'materiasPrimas':
+            this.formMateriaPrima.foto = e.target.result.split(',')[1]; // Base64 sin prefijo
+            break;
+          case 'herramientas':
+            this.formHerramienta.foto = e.target.result.split(',')[1];
+            break;
+          case 'medicamentos':
+            this.formMedicamento.foto = e.target.result.split(',')[1];
+            break;
+        }
+        
+        this.cdRef.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  eliminarFoto(): void {
+    this.archivoSeleccionado = null;
+    this.fotoPreview = '';
+    
+    switch (this.tabActiva) {
+      case 'materiasPrimas':
+        this.formMateriaPrima.foto = '';
+        break;
+      case 'herramientas':
+        this.formHerramienta.foto = '';
+        break;
+      case 'medicamentos':
+        this.formMedicamento.foto = '';
+        break;
+    }
+    
+    this.cdRef.detectChanges();
+  }
+
+  // ==================== MÉTODO AUXILIAR PARA OBTENER URL DE FOTO ====================
+
+  obtenerFotoUrl(foto: string): string {
+    if (!foto) return '';
+    return foto.startsWith('data:') ? foto : `data:image/jpeg;base64,${foto}`;
   }
 
   // ==================== MÉTODOS PARA HERRAMIENTAS ====================
 
-  abrirModalHerramienta(herramienta?: any): void {
-    if (herramienta) {
-      this.herramientaEditando = herramienta;
-      this.formHerramienta = {
-        nombre: herramienta.nombre,
-        idProveedor: herramienta.idProveedor || herramienta.proveedor?.id || 0,
-        foto: herramienta.foto || ''
-      };
-    } else {
-      this.herramientaEditando = null;
-      this.formHerramienta = {
-        nombre: '',
-        idProveedor: 0,
-        foto: ''
-      };
-    }
-    this.mostrarModalHerramienta = true;
+  abrirModalConfirmacionHerramienta(herramienta: any, event: Event): void {
+    event.stopPropagation();
+    this.herramientaAEliminar = herramienta;
+    this.mostrarModalConfirmacionHerramienta = true;
+    this.cdRef.detectChanges();
   }
 
-  cerrarModalHerramienta(): void {
-    this.mostrarModalHerramienta = false;
-    this.herramientaEditando = null;
-    this.formHerramienta = {
-      nombre: '',
-      idProveedor: 0,
-      foto: ''
-    };
+  cerrarModalConfirmacionHerramienta(): void {
+    this.mostrarModalConfirmacionHerramienta = false;
+    this.herramientaAEliminar = null;
+    this.cdRef.detectChanges();
+  }
+
+  confirmarEliminacionHerramienta(): void {
+    if (!this.herramientaAEliminar) return;
+
+    this.eliminando = true;
+    this.cdRef.detectChanges();
+    
+    this.herramientasService.eliminar(this.herramientaAEliminar.id).subscribe({
+      next: (response: any) => {
+        if (response.codigo === 200) {
+          this.toastService.success('Éxito', 'Herramienta eliminada correctamente');
+          this.cargarAlmacenes();
+          this.actualizarEspaciosOcupados();
+          this.cerrarModalConfirmacionHerramienta();
+        } else {
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
+        }
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al eliminar herramienta:', err);
+        this.toastService.error('Error', 'No se pudo eliminar la herramienta');
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      }
+    });
   }
 
   // ==================== MÉTODOS PARA MATERIAS PRIMAS ====================
 
-  abrirModalMateriaPrima(materiaPrima?: any): void {
-    if (materiaPrima) {
-      this.materiaPrimaEditando = materiaPrima;
-      this.formMateriaPrima = {
-        nombre: materiaPrima.nombre,
-        cantidad: materiaPrima.cantidad,
-        idProveedor: materiaPrima.idProveedor || materiaPrima.proveedor?.id || 0,
-        foto: materiaPrima.foto || ''
-      };
-    } else {
-      this.materiaPrimaEditando = null;
-      this.formMateriaPrima = {
-        nombre: '',
-        cantidad: 0,
-        idProveedor: 0,
-        foto: ''
-      };
-    }
-    this.mostrarModalMateriaPrima = true;
+  abrirModalConfirmacionMateria(materia: any, event: Event): void {
+    event.stopPropagation();
+    this.materiaAEliminar = materia;
+    this.mostrarModalConfirmacionMateria = true;
+    this.cdRef.detectChanges();
   }
 
-  cerrarModalMateriaPrima(): void {
-    this.mostrarModalMateriaPrima = false;
-    this.materiaPrimaEditando = null;
-    this.formMateriaPrima = {
-      nombre: '',
-      cantidad: 0,
-      idProveedor: 0,
-      foto: ''
-    };
+  cerrarModalConfirmacionMateria(): void {
+    this.mostrarModalConfirmacionMateria = false;
+    this.materiaAEliminar = null;
+    this.cdRef.detectChanges();
   }
 
-  // ==================== ACTUALIZAR MÉTODO abrirModalItem ====================
+  confirmarEliminacionMateria(): void {
+    if (!this.materiaAEliminar) return;
 
-  abrirModalItem(item?: any): void {
-    switch (this.tabActiva) {
-      case 'medicamentos':
-        this.abrirModalMedicamento(item);
-        break;
-      case 'herramientas':
-        this.abrirModalHerramienta(item);
-        break;
-      case 'materiasPrimas':
-        this.abrirModalMateriaPrima(item);
-        break;
-      case 'lotes':
-        this.abrirModalLote(item);
-        break;
-    }
+    this.eliminando = true;
+    this.cdRef.detectChanges();
+    
+    this.materiasPrimasService.eliminarPorId(this.materiaAEliminar.id).subscribe({
+      next: (response: any) => {
+        if (response.codigo === 200) {
+          this.toastService.success('Éxito', 'Materia prima eliminada correctamente');
+          this.cargarAlmacenes();
+          this.actualizarEspaciosOcupados();
+          this.cerrarModalConfirmacionMateria();
+        } else {
+          this.toastService.error('Error', response.descripcion || 'Error al eliminar');
+        }
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al eliminar materia prima:', err);
+        this.toastService.error('Error', 'No se pudo eliminar la materia prima');
+        this.eliminando = false;
+        this.cdRef.detectChanges();
+      }
+    });
   }
 }

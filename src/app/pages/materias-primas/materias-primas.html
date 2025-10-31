@@ -12,7 +12,8 @@
         <span class="material-icons search-icon">search</span>
       </div>
       <button class="btn add" (click)="abrirFormulario()">
-        <span class="material-icons">add_circle</span> Nueva Materia Prima
+                <span class="material-icons">add</span>
+ Nueva Materia Prima
       </button>
     </div>
   </div>
@@ -57,7 +58,7 @@
     <h3>No hay materias primas registradas</h3>
     <p>Comienza agregando tu primera materia prima</p>
     <button class="btn add" (click)="abrirFormulario()">
-      <span class="material-icons">add_circle</span>
+        <span class="material-icons">add</span>
       Agregar Primera Materia Prima
     </button>
   </div>
@@ -162,7 +163,6 @@
 
         <div class="modal-actions">
           <button class="btn save" type="submit" [disabled]="guardando">
-            <span class="material-icons">check</span> 
             {{ guardando ? 'Guardando...' : 'Guardar' }}
           </button>
           <button 
@@ -171,7 +171,6 @@
             (click)="cerrarFormulario()"
             [disabled]="guardando"
           >
-            <span class="material-icons">close</span> 
             Cancelar
           </button>
         </div>

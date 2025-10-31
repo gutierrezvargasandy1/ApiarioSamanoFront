@@ -63,6 +63,8 @@ export class Header implements OnInit {
 
   toggleProfile() {
     this.showProfile = !this.showProfile;
+    this.audioService.play('assets/audios/boton.mp3',0.6)
+
     // Recargar datos cada vez que se abre el perfil
     if (this.showProfile) {
       this.cargarDatosUsuario();
@@ -74,6 +76,7 @@ export class Header implements OnInit {
   }
 
   logout() {
+    this.audioService.play('assets/audios/boton.mp3',0.6)
     this.authService.cerrarSesion();
     this.audioService.play('assets/audios/Despedida.mp3')
     this.router.navigate(['/login']);

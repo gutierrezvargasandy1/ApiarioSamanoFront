@@ -16,12 +16,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 5px;
   padding: 25px;
   background: #fff;
-  border-radius: 15px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   border-bottom: 3px solid #fbbf24;
+  position: sticky;
+  top: 90px;
+  z-index: 999;
+  transition: all 0.3s ease;
+}
+.header.scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px 25px;
 }
 
 .header h2 {
@@ -56,7 +63,7 @@
   border: 2px solid #fcd34d;
   border-radius: 10px;
   font-size: 14px;
-  width: 280px;
+  width: 350px;
   transition: all 0.3s ease;
   background: #fffbeb;
   color: #78350f;
@@ -81,6 +88,31 @@
   pointer-events: none;
 }
 
+/* ==================== ALERTA ==================== */
+.alert {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 15px 25px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+
 /* ==================== BOTONES ==================== */
 .btn {
   display: inline-flex;
@@ -93,7 +125,6 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
-  transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -158,7 +189,8 @@
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow: auto;
+  max-height: 75vh; 
 }
 
 .tabla {
@@ -168,6 +200,9 @@
 
 .tabla thead {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    position: sticky;
+   top: 0; /* Se pega en la parte superior del contenedor */
+  z-index: 10;
 }
 
 .tabla th {
@@ -193,7 +228,6 @@
 
 .tabla tbody tr {
   border-bottom: 1px solid #fef3c7;
-  transition: all 0.3s ease;
 }
 
 .tabla tbody tr:hover {
@@ -331,7 +365,6 @@
   border: 2px solid #fcd34d;
   border-radius: 10px;
   font-size: 14px;
-  transition: all 0.3s ease;
   background: #fffbeb;
   color: #78350f;
 }
@@ -344,11 +377,6 @@
   background: #fff;
 }
 
-/* Input de archivo personalizado */
-.file-input-container {
-  position: relative;
-  margin-top: 8px;
-}
 
 .modal-content input[type="file"] {
   display: none;
@@ -364,7 +392,6 @@
   border: 2px dashed #fbbf24;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
   color: #78350f;
   font-weight: 600;
   width: 100%; /* Asegura que ocupe todo el ancho disponible */
@@ -414,7 +441,6 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
 }
 
 .remove-image:hover {
@@ -579,7 +605,6 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
   z-index: 10;
 }
 
@@ -719,7 +744,6 @@
   border: 2px solid #fcd34d;
   border-radius: 10px;
   font-size: 14px;
-  transition: all 0.3s ease;
   background: #fffbeb;
   color: #78350f;
 }
@@ -751,7 +775,6 @@
   border: 2px dashed #fbbf24;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
   color: #78350f;
   font-weight: 600;
   width: 100%;
@@ -821,7 +844,6 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
-  transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -1011,10 +1033,20 @@
 }
 
 .confirmacion-icon {
-  font-size: 64px;
+  font-size: 0px;
   color: #dc2626;
   margin-bottom: 10px;
   animation: pulse 2s infinite;
+}
+.foto-tablaModal {
+  width: 140px;         /* Tamaño más grande */
+  height: 140px;
+  object-fit: cover;    /* Evita que se deforme la imagen */
+  border-radius: 12px;  /* Bordes redondeados */
+  margin: 0 auto 12px;  /* Centrado + espacio abajo */
+  display: block;       /* Asegura centrado */
+  border: 3px solid #d1d1d1; /* Marco sencillo */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* Sombra para mejor visual */
 }
 
 @keyframes pulse {
@@ -1026,7 +1058,7 @@
 .confirmacion-modal h3 {
   color: #dc2626;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .confirmacion-modal h3::before {
@@ -1101,20 +1133,18 @@
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   color: white;
   flex: 0 1 auto;
-  min-width: 140px;
+  min-width: 205px;
   position: relative;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .btn.delete-confirm:hover:not(:disabled) {
   background: linear-gradient(135deg, #b91c1c, #991b1b);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-  transform: translateY(-2px);
 }
 
 .btn.delete-confirm:disabled {
@@ -1134,12 +1164,10 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .btn.cancel:hover:not(:disabled) {
   background: #4b5563;
-  transform: translateY(-2px);
 }
 
 .btn.cancel:disabled {

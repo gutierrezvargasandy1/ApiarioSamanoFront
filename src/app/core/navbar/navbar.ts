@@ -5,7 +5,7 @@ import { AuthService } from '../../services/auth/auth.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-
+import { AudioService } from '../../services/Audio/audio-service';
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.html',
@@ -20,6 +20,7 @@ export class Navbar implements OnInit, OnDestroy {
   constructor(
     public router: Router, 
     private authService: AuthService,
+    private audiService :AudioService,
     @Inject(PLATFORM_ID) private platformId: Object // ✅ INYECTAR PLATFORM_ID
   ) {}
 
@@ -51,14 +52,43 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   // === NAVEGACIÓN ===
-  goToHome() { this.router.navigate(['/home']); }
-  goToProduccion() { this.router.navigate(['/produccion']); }
-  goToLotes() { this.router.navigate(['/lotes']); }
-  goToApiarios() { this.router.navigate(['/apiarios']); }
-  goToAlmacenes() { this.router.navigate(['/almacenes']); }
-  goToHerramientas() { this.router.navigate(['/herramientas']); }
-  goToMateriasPrimas() { this.router.navigate(['/materias-primas']); }
-  goToProveedores() { this.router.navigate(['/proveedores']); }
-  goToUsuarios() { this.router.navigate(['/usuarios']); }
-  goToHistorialMedico() { this.router.navigate(['/medicamentos']); }
+  goToHome() { this.router.navigate(['/home']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+  }
+  goToProduccion() { this.router.navigate(['/produccion']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToLotes() { this.router.navigate(['/lotes']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToApiarios() { this.router.navigate(['/apiarios']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToAlmacenes() { this.router.navigate(['/almacenes']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToHerramientas() { this.router.navigate(['/herramientas']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToMateriasPrimas() { this.router.navigate(['/materias-primas']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToProveedores() { this.router.navigate(['/proveedores']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToUsuarios() { this.router.navigate(['/usuarios']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
+  goToHistorialMedico() { this.router.navigate(['/medicamentos']); 
+  this.audiService.play('assets/audios/boton.mp3',0.6)
+
+  }
 }

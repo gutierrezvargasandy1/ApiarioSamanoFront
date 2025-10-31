@@ -3,7 +3,7 @@ import { MateriasPrimasService, MateriasPrimasRequest, MateriasPrimasConProveedo
 import { ProveedoresService, Proveedor } from '../../services/proveedoresService/proveedores-service';
 import { AlmacenService, Almacen } from '../../services/almaceneService/almacen-service';
 import { ToastService } from '../../services/toastService/toast-service';
-
+import { AudioService } from '../../services/Audio/audio-service';
 @Component({
   selector: 'app-materias-primas',
   standalone: false,
@@ -56,7 +56,8 @@ export class MateriasPrimas implements OnInit {
     private proveedoresService: ProveedoresService,
     private almacenService: AlmacenService,
     private toastService: ToastService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private audiService : AudioService
   ) {}
 
   ngOnInit() {
@@ -389,6 +390,8 @@ export class MateriasPrimas implements OnInit {
   abrirModalConfirmacion(materia: MateriasPrimasConProveedorDTO) {
     this.materiaAEliminar = materia;
     this.mostrarModalConfirmacion = true;
+    this.audiService.play('assets/audios/Advertencia.mp3',0.6)
+
     this.cd.detectChanges();
   }
 

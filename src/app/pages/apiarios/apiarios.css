@@ -659,11 +659,10 @@
 .chat-messages {
     max-height: 300px;
     overflow-y: auto;
-    margin-bottom: 15px;
     padding: 10px;
-    background: white;
+    background: #f8f9fa;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    margin-bottom: 15px;
 }
 
 .message {
@@ -681,6 +680,34 @@
     justify-content: flex-end;
 }
 
+
+.loading-container {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+    font-style: italic;
+}
 .message-avatar {
     width: 32px;
     height: 32px;
@@ -1330,4 +1357,34 @@ select option:disabled {
         max-width: 100%;
         text-align: left;
     }
+}
+
+/* Buscador */
+.search-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 2px solid #fcd34d;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #78350f;
 }

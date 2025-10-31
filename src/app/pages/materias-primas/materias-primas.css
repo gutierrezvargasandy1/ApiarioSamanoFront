@@ -16,13 +16,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   padding: 25px;
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   border-bottom: 3px solid #fbbf24;
+  position: sticky;
+  top: 90px;
+  z-index: 999;
+  transition: all 0.3s ease;
 }
+.header.scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px 25px;
+}
+
 
 .header h2 {
   color: #92400e;
@@ -84,16 +93,16 @@
 /* ==================== CATÁLOGO ==================== */
 .catalogo {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Reducido de 320px */
+  gap: 20px; /* Reducido de 25px */
   margin-bottom: 30px;
 }
 
 .card {
   background: #fff;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-radius: 16px; /* Reducido de 20px */
+  padding: 8px; /* Reducido de 10px */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Sombra más pequeña */
   transition: all 0.3s ease;
   border: 2px solid transparent;
   display: flex;
@@ -103,20 +112,19 @@
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); /* Sombra hover más pequeña */
   border-color: #fbbf24;
 }
 
 .card-badge {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 12px; /* Reducido de 15px */
+  right: 12px; /* Reducido de 15px */
   background: #fbbf24;
   color: #78350f;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
+  padding: 3px 8px; /* Reducido */
+  border-radius: 16px; /* Reducido */
+  font-size: 10px; /* Reducido de 11px */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -124,48 +132,48 @@
 
 .card-image {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 12px; /* Reducido de 15px */
 }
 
 .materia-imagen {
   width: 100%;
-  height: 180px;
+  height: 150px; /* Reducido de 180px */
   object-fit: cover;
-  border-radius: 12px;
-  border: 3px solid #fbbf24;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 10px; /* Reducido de 12px */
+  border: 2px solid #fbbf24; /* Reducido de 3px */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); /* Sombra más pequeña */
 }
 
 .no-imagen {
   width: 100%;
-  height: 180px;
-  border-radius: 12px;
+  height: 150px; /* Reducido de 180px */
+  border-radius: 10px; /* Reducido de 12px */
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
+  font-size: 36px; /* Reducido de 48px */
   border: 2px solid #fbbf24;
 }
 
 .card-content {
   flex: 1;
-  margin-bottom: 15px;
+  margin-bottom: 12px; /* Reducido de 15px */
 }
 
 .card h3 {
   color: #92400e;
-  font-size: 18px;
+  font-size: 16px; /* Reducido de 18px */
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 10px; /* Reducido de 12px */
   text-align: center;
   line-height: 1.3;
 }
 
 .card-info {
   color: #78350f;
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 13px; /* Reducido de 14px */
+  margin-bottom: 6px; /* Reducido de 8px */
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -173,7 +181,7 @@
 
 .card-info strong {
   color: #92400e;
-  min-width: 80px;
+  min-width: 70px; /* Reducido de 80px */
 }
 
 .card-info-value {
@@ -185,12 +193,41 @@
 .card-actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 8px; /* Reducido de 10px */
   margin-top: auto;
-  padding-top: 15px;
+  padding-top: 12px; /* Reducido de 15px */
   border-top: 1px solid #fef3c7;
 }
 
+/* ==================== BOTONES ==================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* Reducido de 8px */
+  border: none;
+  border-radius: 8px; /* Reducido de 10px */
+  padding: 10px 16px; /* Reducido */
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px; /* Reducido de 14px */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Sombra más pequeña */
+}
+
+.btn .material-icons {
+  font-size: 16px; /* Reducido de 18px */
+}
+
+.btn.edit {
+  padding: 6px 12px; /* Reducido */
+  flex: 1;
+}
+
+.btn.delete {
+  padding: 6px 12px; /* Reducido */
+  flex: 1;
+}
 /* ==================== BOTONES ==================== */
 .btn {
   display: inline-flex;
@@ -577,7 +614,7 @@
 }
 
 .confirmacion-icon {
-  font-size: 64px;
+  font-size: 0px;
   color: #dc2626;
   margin-bottom: 10px;
   animation: pulse 2s infinite;
@@ -712,7 +749,7 @@
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   color: white;
   flex: 0 1 auto;
-  min-width: 160px;
+  min-width: 255px;
   position: relative;
   border: none;
   padding: 12px 24px;
@@ -729,7 +766,6 @@
 .btn.delete-confirm:hover:not(:disabled) {
   background: linear-gradient(135deg, #b91c1c, #991b1b);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-  transform: translateY(-2px);
 }
 
 .btn.delete-confirm:disabled {
@@ -748,8 +784,6 @@
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -758,7 +792,6 @@
 
 .btn.cancel:hover:not(:disabled) {
   background: #4b5563;
-  transform: translateY(-2px);
 }
 
 .btn.cancel:disabled {

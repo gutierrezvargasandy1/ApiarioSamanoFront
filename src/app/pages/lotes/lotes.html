@@ -44,11 +44,14 @@
                         <span class="dato-valor">{{ lote.id }}</span>
                     </div>
                 </div>
-                <div class="botones-container">
-                    <button class="btn btn-eliminar" (click)="eliminarLote(lote, $event)">
-                        🗑️ Eliminar
-                    </button>
-                </div>
+<div class="botones-container">
+    <button class="btn btn-editar" (click)="editarLote(lote, $event)">
+        ✏️ Editar
+    </button>
+    <button class="btn btn-eliminar" (click)="eliminarLote(lote, $event)">
+        🗑️ Eliminar
+    </button>
+</div>
             </div>
 
             <div *ngIf="cargando" class="empty-state">
@@ -121,99 +124,13 @@
                             <span class="dato-label">Capacidad:</span>
                             <span class="dato-valor">{{ loteSeleccionado.almacen.capacidad }}</span>
                         </div>
-                        <div class="dato-row">
-                            <span class="dato-label">Total de Recursos:</span>
-                            <span class="dato-valor">{{ contarRecursosAlmacen(loteSeleccionado) }} items</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Materias Primas -->
-                <div class="info-card" *ngIf="loteSeleccionado.almacen && loteSeleccionado.almacen.materiasPrimas && loteSeleccionado.almacen.materiasPrimas.length > 0">
-                    <div class="info-title">🌾 Materias Primas ({{ loteSeleccionado.almacen.materiasPrimas.length }})</div>
-                    <div class="info-content">
-                        <div *ngFor="let materia of loteSeleccionado.almacen.materiasPrimas" class="recurso-item">
-                            <div class="dato-row">
-                                <span class="dato-label">{{ materia.nombre }}</span>
-                                <span class="dato-valor">Cantidad: {{ materia.cantidad }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Herramientas -->
-                <div class="info-card" *ngIf="loteSeleccionado.almacen && loteSeleccionado.almacen.herramientas && loteSeleccionado.almacen.herramientas.length > 0">
-                    <div class="info-title">🔧 Herramientas ({{ loteSeleccionado.almacen.herramientas.length }})</div>
-                    <div class="info-content">
-                        <div *ngFor="let herramienta of loteSeleccionado.almacen.herramientas" class="recurso-item">
-                            <div class="dato-row">
-                                <span class="dato-label">{{ herramienta.nombre }}</span>
-                                <span class="dato-valor">ID: {{ herramienta.id }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Medicamentos -->
-                <div class="info-card" *ngIf="loteSeleccionado.almacen && loteSeleccionado.almacen.medicamentos && loteSeleccionado.almacen.medicamentos.length > 0">
-                    <div class="info-title">💊 Medicamentos ({{ loteSeleccionado.almacen.medicamentos.length }})</div>
-                    <div class="info-content">
-                        <div *ngFor="let medicamento of loteSeleccionado.almacen.medicamentos" class="recurso-item">
-                            <div class="dato-row">
-                                <span class="dato-label">{{ medicamento.nombre }}</span>
-                                <span class="dato-valor">Cantidad: {{ medicamento.cantidad }}</span>
-                            </div>
-                            <p style="font-size: 13px; color: #78350f; margin-top: 5px;">
-                                {{ medicamento.descripcion }}
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sugerencias -->
-        <div class="sugerencias-container">
-            <div class="sugerencias-header">
-                <h3>💡 Recomendaciones para Gestión de Lotes</h3>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">📋 Trazabilidad Completa</div>
-                <div class="sugerencia-texto">
-                    Mantén un registro detallado de cada lote desde su creación hasta su distribución para garantizar calidad y cumplir con normativas.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🔄 Rotación de Inventario</div>
-                <div class="sugerencia-texto">
-                    Aplica el método FIFO (First In, First Out) para asegurar que los productos más antiguos se utilicen primero.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🌡️ Condiciones de Almacenamiento</div>
-                <div class="sugerencia-texto">
-                    Verifica regularmente temperatura y humedad del almacén para preservar la calidad de los productos apícolas.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">📊 Análisis de Calidad</div>
-                <div class="sugerencia-texto">
-                    Realiza pruebas de calidad periódicas a cada lote para garantizar que cumple con los estándares requeridos.
-                </div>
-            </div>
-
-            <div class="sugerencia-item">
-                <div class="sugerencia-titulo">🏷️ Etiquetado Correcto</div>
-                <div class="sugerencia-texto">
-                    Asegura que cada lote esté correctamente etiquetado con fecha de producción, tipo de producto y número de seguimiento.
-                </div>
-            </div>
-        </div>
-    </div>
+ 
 </div>
 
 <!-- Modal para Nuevo Lote -->
